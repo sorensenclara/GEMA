@@ -1,0 +1,106 @@
+{% extends "portal/base.html" %}
+{% block title %}Cliente - GEMA{% endblock %}
+
+{% block page_title %}
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <h4 class="mb-0">{% if object %}Editar cliente{% else %}Nuevo cliente{% endif %}</h4>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="row">
+                {% for field in form %}
+                <div class="mb-3 col-md-6">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <button class="btn btn-primary waves-effect waves-light" type="submit">Guardar</button>
+            <a href="{% url 'portal:cliente-list' %}" class="btn btn-secondary waves-effect">Cancelar</a>
+        </form>
+    </div>
+</div>
+
+{% if object %}
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h4 class="card-title mb-0">Matafuegos de este cliente</h4>
+                    <a href="{% url 'portal:matafuegos-create' %}" class="btn btn-sm btn-outline-primary waves-effect"><i class="mdi mdi-plus me-1"></i> Nuevo</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-centered table-nowrap mb-0">
+                        <thead>
+                            <tr><th>Número</th><th>Tipo</th><th>Próxima carga</th><th>Próximo PH</th><th>Vencido</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            {% for m in matafuegos_cliente %}
+                            <tr>
+                                <td>{{ m.numero }}</td>
+                                <td>{{ m.tipo }}</td>
+                                <td>{{ m.fecha_proxima_carga|default:"-" }}</td>
+                                <td>{{ m.fecha_proxima_ph|default:"-" }}</td>
+                                <td>
+                                    {% if m.vencido %}<span class="badge bg-danger">Sí</span>{% else %}<span class="badge bg-success">No</span>{% endif %}
+                                </td>
+                                <td><a href="{% url 'portal:matafuegos-update' m.pk %}" class="text-primary" title="Editar"><i class="mdi mdi-pencil font-size-18"></i></a></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-muted">Este cliente todavía no tiene matafuegos cargados.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h4 class="card-title mb-0">Órdenes de trabajo de este cliente</h4>
+                    <a href="{% url 'portal:orden-create' %}" class="btn btn-sm btn-outline-primary waves-effect"><i class="mdi mdi-plus me-1"></i> Nueva</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-centered table-nowrap mb-0">
+                        <thead>
+                            <tr><th>N°</th><th>Matafuego</th><th>Estado</th><th>Fecha cierre</th><th>Monto</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            {% for o in ordenes_cliente %}
+                            <tr>
+                                <td>{{ o.id }}</td>
+                                <td>{{ o.matafuegos }}</td>
+                                <td><span class="badge bg-info">{{ o.get_estado_display }}</span></td>
+                                <td>{{ o.fecha_cierre|default:"-" }}</td>
+                                <td>{{ o.monto_total }}</td>
+                                <td>
+                                    <a href="{% url 'portal:orden-update' o.pk %}" class="text-primary" title="Editar"><i class="mdi mdi-pencil font-size-18"></i></a>
+                                    <a href="{% url 'portal:orden-informe' o.pk %}" class="text-primary" title="Informe"><i class="mdi mdi-file-pdf-box font-size-18"></i></a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-muted">Este cliente todavía no tiene órdenes de trabajo cargadas.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

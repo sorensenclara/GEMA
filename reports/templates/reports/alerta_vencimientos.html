@@ -1,0 +1,36 @@
+{% extends "reports/_base.html" %}
+{% block subtitulo %}Vencimientos desde {{ fecha_inicio }} a {{ fecha_fin }}{% endblock %}
+{% block content %}
+<table class="tabla-informe">
+    <thead>
+        <tr>
+            <th>Cliente</th>
+            <th>Dirección</th>
+            <th>Ubicación</th>
+            <th>Tipo</th>
+            <th>Vol</th>
+            <th>N° Mat</th>
+            <th>N° Int</th>
+            <th>Venc. carga</th>
+            <th>Venc. PH</th>
+            <th>Categoría</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in lista %}
+        <tr>
+            <td>{{ d.cliente.nombre }}</td>
+            <td>{{ d.cliente.direccion|default:"-" }}</td>
+            <td>{{ d.localizacion|default:"-" }}</td>
+            <td>{{ d.tipo.tipo }}</td>
+            <td>{{ d.tipo.volumen|default:"-" }}</td>
+            <td>{{ d.numero }}</td>
+            <td>{{ d.numeroInterno|default:"-" }}</td>
+            <td>{{ d.fecha_proxima_carga|date:"d/m/Y"|default:"-" }}</td>
+            <td>{{ d.fecha_proxima_ph|date:"d/m/Y"|default:"-" }}</td>
+            <td>{{ d.categoria|upper }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

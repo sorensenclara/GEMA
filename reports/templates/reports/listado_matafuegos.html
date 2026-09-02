@@ -1,0 +1,29 @@
+{% extends "reports/_base.html" %}
+{% block content %}
+<table class="tabla-informe">
+    <thead>
+        <tr>
+            <th>Número</th>
+            <th>Cliente</th>
+            <th>Dirección</th>
+            <th>Tipo</th>
+            <th>Categoría</th>
+            <th>Fecha de carga</th>
+            <th>Fecha de PH</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for m in matafuegos %}
+        <tr>
+            <td>{{ m.numero }}</td>
+            <td>{{ m.cliente }}</td>
+            <td>{{ m.direccion|default:"-" }}</td>
+            <td>{{ m.tipo }}</td>
+            <td>{{ m.categoria|upper }}</td>
+            <td>{{ m.fecha_carga|date:"d/m/Y"|default:"-" }}</td>
+            <td>{{ m.fecha_ph|date:"d/m/Y"|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

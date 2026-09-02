@@ -1,0 +1,25 @@
+{% extends "panel/base.html" %}
+{% block title %}Compañías - GEMA{% endblock %}
+{% block content %}
+<div class="card">
+    <h1>Compañías</h1>
+    <p><a class="btn" href="{% url 'panel:company-create' %}">+ Nueva compañía</a></p>
+    <table>
+        <thead>
+            <tr><th>Nombre</th><th>Estado</th><th>Creada</th><th></th></tr>
+        </thead>
+        <tbody>
+            {% for c in companies %}
+            <tr>
+                <td>{{ c.nombre }}</td>
+                <td>{{ c.is_active|yesno:"Activa,Inactiva" }}</td>
+                <td>{{ c.fecha_creacion|date:"d/m/Y" }}</td>
+                <td><a href="{% url 'panel:company-update' c.pk %}">Editar</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Todavía no hay compañías cargadas.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

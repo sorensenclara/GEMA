@@ -1,0 +1,27 @@
+{% extends "reports/_base.html" %}
+{% block content %}
+<table class="tabla-informe">
+    <thead>
+        <tr>
+            <th>Nombre/Razón Social</th>
+            <th>CUIT/CUIL</th>
+            <th>Dirección</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Tipo</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in clientes %}
+        <tr>
+            <td>{{ c.nombre }}</td>
+            <td>{{ c.cuit_cuil|default:"-" }}</td>
+            <td>{{ c.direccion|default:"-" }}</td>
+            <td>{{ c.email|default:"-" }}</td>
+            <td>{{ c.telefono|default:"-" }}</td>
+            <td>{{ c.get_tipo_display }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

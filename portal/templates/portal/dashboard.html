@@ -1,0 +1,128 @@
+{% extends "portal/base.html" %}
+{% load static %}
+{% block title %}Inicio - GEMA{% endblock %}
+
+{% block extra_css %}
+{% if user.is_company_admin or user.is_operador %}
+<link href="{% static 'lexa/libs/morris.js/morris.css' %}" rel="stylesheet" type="text/css">
+{% endif %}
+{% endblock %}
+
+{% block page_title %}
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-flex align-items-center justify-content-between">
+            <h4 class="mb-0">Hola, {{ user.username }}</h4>
+            <span class="badge bg-primary font-size-13">{{ user.company.nombre }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if user.is_company_admin or user.is_operador %}
+<div class="row">
+    <div class="col-xl-3 col-sm-6">
+        <div class="card mini-stat bg-primary">
+            <div class="card-body mini-stat-img">
+                <div class="mini-stat-icon"><i class="mdi mdi-account-multiple float-end"></i></div>
+                <div class="text-white">
+                    <h6 class="text-uppercase mb-3 font-size-16 text-white">Clientes activos</h6>
+                    <h2 class="mb-0 text-white">{{ kpi_clientes_activos }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="card mini-stat bg-primary">
+            <div class="card-body mini-stat-img">
+                <div class="mini-stat-icon"><i class="mdi mdi-fire float-end"></i></div>
+                <div class="text-white">
+                    <h6 class="text-uppercase mb-3 font-size-16 text-white">Matafuegos</h6>
+                    <h2 class="mb-0 text-white">{{ kpi_matafuegos_totales }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="card mini-stat bg-primary">
+            <div class="card-body mini-stat-img">
+                <div class="mini-stat-icon"><i class="mdi mdi-clipboard-text-outline float-end"></i></div>
+                <div class="text-white">
+                    <h6 class="text-uppercase mb-3 font-size-16 text-white">Órdenes pendientes</h6>
+                    <h2 class="mb-0 text-white">{{ kpi_ordenes_pendientes }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="card mini-stat bg-primary">
+            <div class="card-body mini-stat-img">
+                <div class="mini-stat-icon"><i class="mdi mdi-calendar-alert float-end"></i></div>
+                <div class="text-white">
+                    <h6 class="text-uppercase mb-3 font-size-16 text-white">Vencimientos a 30 días</h6>
+                    <h2 class="mb-0 text-white">{{ kpi_vencimientos_30d }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Órdenes por estado</h4>
+                {% if mostrar_grafico_ordenes %}
+                    {{ ordenes_por_estado_labels|json_script:"ordenes-por-estado-labels" }}
+                    {{ ordenes_por_estado_values|json_script:"ordenes-por-estado-values" }}
+                    <div id="morris-donut-ordenes" class="morris-charts morris-charts-height"></div>
+                {% else %}
+                    <p class="text-muted mb-0">Todavía no hay órdenes de trabajo cargadas.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Accesos rápidos</h4>
+                <div class="d-flex flex-wrap gap-2">
+                    <a class="btn btn-outline-primary waves-effect" href="{% url 'portal:cliente-list' %}"><i class="mdi mdi-account-multiple me-1"></i> Clientes</a>
+                    <a class="btn btn-outline-primary waves-effect" href="{% url 'portal:matafuegos-list' %}"><i class="mdi mdi-fire me-1"></i> Matafuegos</a>
+                    <a class="btn btn-outline-primary waves-effect" href="{% url 'portal:orden-list' %}"><i class="mdi mdi-clipboard-text-outline me-1"></i> Órdenes de trabajo</a>
+                    <a class="btn btn-outline-primary waves-effect" href="{% url 'portal:tarea-list' %}"><i class="mdi mdi-format-list-checks me-1"></i> Tareas</a>
+                    {% if user.is_company_admin %}
+                    <a class="btn btn-outline-secondary waves-effect" href="{% url 'portal:user-list' %}"><i class="mdi mdi-account-cog-outline me-1"></i> Usuarios</a>
+                    <a class="btn btn-outline-secondary waves-effect" href="{% url 'portal:company-profile' %}"><i class="mdi mdi-domain me-1"></i> Mi compañía</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif user.is_cliente_final %}
+<div class="card">
+    <div class="card-body">
+        <p>Podés consultar tus matafuegos e informes.</p>
+        <a class="btn btn-primary waves-effect waves-light" href="{% url 'portal:mis-matafuegos' %}">Mis matafuegos</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if mostrar_grafico_ordenes %}
+<script src="{% static 'lexa/libs/morris.js/morris.min.js' %}"></script>
+<script src="{% static 'lexa/libs/raphael/raphael.min.js' %}"></script>
+<script>
+(function () {
+    var labels = JSON.parse(document.getElementById('ordenes-por-estado-labels').textContent);
+    var values = JSON.parse(document.getElementById('ordenes-por-estado-values').textContent);
+    var data = labels.map(function (label, i) { return {label: label, value: values[i]}; });
+    new Morris.Donut({ element: 'morris-donut-ordenes', data: data, resize: true });
+})();
+</script>
+{% endif %}
+{% endblock %}

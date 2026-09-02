@@ -1,0 +1,22 @@
+{% extends "reports/_base.html" %}
+{% block subtitulo %}Fecha de emisión: {{ fecha|date:"d/m/Y" }}{% endblock %}
+{% block content %}
+{% for grupo in grupos %}
+<div class="grupo-titulo">Cliente: {{ grupo.cliente }}</div>
+<table class="tabla-informe">
+    <thead>
+        <tr><th>Cantidad</th><th>Tarea</th><th>Cantidad cargada</th><th>Tipo</th></tr>
+    </thead>
+    <tbody>
+        {% for fila in grupo.filas %}
+        <tr>
+            <td>{{ fila.cantidad }}</td>
+            <td>{{ fila.tarea }}</td>
+            <td>{% if fila.cant_cargada != '0.0' %}{{ fila.cant_cargada }}{% endif %}</td>
+            <td>{{ fila.tipo }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "reports/_base.html" %}
+{% block content %}
+<div class="datos-bloque">
+    <strong>Nombre/Razón Social:</strong> {{ cliente.nombre }}<br>
+    <strong>Código:</strong> {{ cliente.codigo }}<br>
+    <strong>CUIT/CUIL:</strong> {{ cliente.cuit_cuil|default:"-" }}<br>
+    <strong>Dirección:</strong> {{ cliente.direccion|default:"-" }}<br>
+    <strong>Teléfono:</strong> {{ cliente.telefono|default:"-" }}
+</div>
+<div class="grupo-titulo">Matafuegos</div>
+<table class="tabla-informe">
+    <thead>
+        <tr>
+            <th>Número</th>
+            <th>Nro interno</th>
+            <th>DPS</th>
+            <th>Tipo</th>
+            <th>Fabricación</th>
+            <th>Ubicación</th>
+            <th>Próxima carga</th>
+            <th>Próximo PH</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for m in matafuegos %}
+        <tr>
+            <td>{{ m.numero }}</td>
+            <td>{{ m.numeroInterno|default:"-" }}</td>
+            <td>{{ m.numero_dps|default:"-" }}</td>
+            <td>{{ m.tipo }}</td>
+            <td>{{ m.fecha_fabricacion|date:"d/m/Y"|default:"-" }}</td>
+            <td>{{ m.localizacion|default:"-" }}</td>
+            <td>{{ m.fecha_proxima_carga|date:"d/m/Y"|default:"-" }}</td>
+            <td>{{ m.fecha_proxima_ph|date:"d/m/Y"|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

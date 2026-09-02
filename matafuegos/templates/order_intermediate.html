@@ -1,0 +1,22 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<form action="" method="post">
+  {% csrf_token %}
+<p>
+Indique las fechas de rango para el vencimiento de carga y de PH
+</p>
+  <label for="start">Fecha inicio:</label>
+  <input type="date" id="start" name="inicio">
+
+  <label for="start">Fecha fin:</label>
+  <input type="date" id="fin" name="fin">
+
+
+  <input type="hidden" name="action" value="vencimientos_fechas" />
+  <input type="submit" name="apply" value="Generar informe"/>
+  <input type="submit" name="volver" value="volver"/>
+
+
+</form>
+{% endblock %}

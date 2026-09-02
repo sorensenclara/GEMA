@@ -1,0 +1,56 @@
+{% extends "reports/_base.html" %}
+{% block content %}
+<div class="grupo-titulo" style="margin-top:0;">Carga de matafuegos</div>
+{% for grupo in grupos_carga %}
+<div class="datos-bloque">
+    <strong>Nombre/Razón Social:</strong> {{ grupo.cliente }}<br>
+    <strong>Teléfono:</strong> {{ grupo.cliente.telefono|default:"-" }}<br>
+    <strong>Email:</strong> {{ grupo.cliente.email|default:"-" }}
+</div>
+<table class="tabla-informe">
+    <thead>
+        <tr><th>Número</th><th>Número de DPS</th><th>Fecha de vencimiento</th><th>Dirección</th><th>Categoría</th></tr>
+    </thead>
+    <tbody>
+        {% for d in grupo.items %}
+        <tr>
+            <td>{{ d.numero }}</td>
+            <td>{{ d.numero_dps|default:"-" }}</td>
+            <td>{{ d.fecha_proxima_carga|date:"d/m/Y"|default:"-" }}</td>
+            <td>{{ d.cliente.direccion|default:"-" }}</td>
+            <td>{{ d.categoria|upper }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% empty %}
+<div class="datos-bloque">No hay matafuegos con carga próxima a vencer.</div>
+{% endfor %}
+
+<div class="grupo-titulo">PH de matafuegos</div>
+{% for grupo in grupos_ph %}
+<div class="datos-bloque">
+    <strong>Nombre/Razón Social:</strong> {{ grupo.cliente }}<br>
+    <strong>Teléfono:</strong> {{ grupo.cliente.telefono|default:"-" }}<br>
+    <strong>Email:</strong> {{ grupo.cliente.email|default:"-" }}
+</div>
+<table class="tabla-informe">
+    <thead>
+        <tr><th>Número</th><th>Número de DPS</th><th>Fecha de vencimiento</th><th>Dirección</th><th>Categoría</th></tr>
+    </thead>
+    <tbody>
+        {% for d in grupo.items %}
+        <tr>
+            <td>{{ d.numero }}</td>
+            <td>{{ d.numero_dps|default:"-" }}</td>
+            <td>{{ d.fecha_proxima_ph|date:"d/m/Y"|default:"-" }}</td>
+            <td>{{ d.cliente.direccion|default:"-" }}</td>
+            <td>{{ d.categoria|upper }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% empty %}
+<div class="datos-bloque">No hay matafuegos con PH próxima a vencer.</div>
+{% endfor %}
+{% endblock %}

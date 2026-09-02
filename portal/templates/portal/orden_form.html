@@ -1,0 +1,91 @@
+{% extends "portal/base.html" %}
+{% block title %}Orden de trabajo - GEMA{% endblock %}
+
+{% block page_title %}
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <h4 class="mb-0">{% if object %}Editar orden N° {{ object.id }}{% else %}Nueva orden de trabajo{% endif %}</h4>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="row">
+                {% for field in form %}
+                <div class="mb-3 col-md-6">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <h5 class="mt-4">Tareas realizadas</h5>
+            {{ formset.management_form }}
+            {% if formset.non_form_errors %}<div class="text-danger small mb-2">{{ formset.non_form_errors }}</div>{% endif %}
+            <div class="table-responsive">
+                <table class="table table-centered table-nowrap mb-3">
+                    <thead>
+                        <tr><th>Tarea</th><th>Cantidad</th><th>Precio ajustado</th><th>Eliminar</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for tarea_form in formset %}
+                        <tr>
+                            {{ tarea_form.id }}
+                            <td>{{ tarea_form.tarea }}{{ tarea_form.tarea.errors }}</td>
+                            <td>{{ tarea_form.cant_cargada }}{{ tarea_form.cant_cargada.errors }}</td>
+                            <td>{{ tarea_form.precioAj }}{{ tarea_form.precioAj.errors }}</td>
+                            <td class="text-center">{% if tarea_form.instance.pk %}{{ tarea_form.DELETE }}{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <button class="btn btn-primary waves-effect waves-light" type="submit">Guardar</button>
+            <a href="{% url 'portal:orden-list' %}" class="btn btn-secondary waves-effect">Cancelar</a>
+        </form>
+    </div>
+</div>
+<script>
+(function () {
+    var clienteSelect = document.getElementById('id_cliente');
+    var matafuegosSelect = document.getElementById('id_matafuegos');
+    if (!clienteSelect || !matafuegosSelect) { return; }
+
+    function filtrarMatafuegos() {
+        var clienteId = clienteSelect.value;
+        var seleccionActual = matafuegosSelect.value;
+        var opciones = matafuegosSelect.querySelectorAll('option');
+        var primeraVisible = null;
+        opciones.forEach(function (opcion) {
+            if (!opcion.value) {
+                opcion.hidden = false;
+                return;
+            }
+            var visible = !clienteId || opcion.getAttribute('data-cliente') === clienteId;
+            opcion.hidden = !visible;
+            if (visible && primeraVisible === null) {
+                primeraVisible = opcion.value;
+            }
+        });
+        if (matafuegosSelect.options[matafuegosSelect.selectedIndex] &&
+            matafuegosSelect.options[matafuegosSelect.selectedIndex].hidden) {
+            matafuegosSelect.value = primeraVisible || '';
+        } else {
+            matafuegosSelect.value = seleccionActual;
+        }
+    }
+
+    clienteSelect.addEventListener('change', filtrarMatafuegos);
+    filtrarMatafuegos();
+})();
+</script>
+{% endblock %}

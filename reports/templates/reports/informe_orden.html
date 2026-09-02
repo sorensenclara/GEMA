@@ -1,0 +1,31 @@
+{% extends "reports/_base.html" %}
+{% block content %}
+<div class="datos-bloque">
+    <strong>Número de orden:</strong> {{ orden.id }}<br>
+    <strong>Fecha inicio de orden:</strong> {{ orden.fecha_inicio|date:"d/m/Y"|default:"-" }}<br>
+    <strong>Fecha cierre de orden:</strong> {{ orden.fecha_cierre|date:"d/m/Y"|default:"-" }}<br>
+    <strong>Cliente:</strong> {{ orden.cliente }}<br>
+    <strong>Matafuego:</strong> {{ orden.matafuegos }}<br>
+    <strong>Estado de la orden:</strong> {{ orden.get_estado_display }}
+</div>
+<div class="grupo-titulo">Tareas realizadas</div>
+<table class="tabla-informe">
+    <thead>
+        <tr><th>Nombre de la tarea</th><th>Cantidad</th><th>Precio</th></tr>
+    </thead>
+    <tbody>
+        {% for t in tareas %}
+        <tr>
+            <td>{{ t.tarea.nombre }}</td>
+            <td>{{ t.cant_cargada }}</td>
+            <td>{{ t.tarea.precio }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="fila-total">
+            <td>Monto total</td>
+            <td></td>
+            <td>{{ orden.monto_total }}</td>
+        </tr>
+    </tbody>
+</table>
+{% endblock %}
