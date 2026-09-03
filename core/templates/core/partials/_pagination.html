@@ -1,0 +1,45 @@
+{% load list_helpers %}
+{% if page_obj.paginator.count > 0 %}
+<div class="pagination-controls d-flex align-items-center flex-wrap gap-2 mt-3">
+    <form method="get" class="d-flex align-items-center gap-2">
+        {% for key, values in request.GET.lists %}
+            {% if key != 'page_size' and key != 'page' %}
+                {% for v in values %}<input type="hidden" name="{{ key }}" value="{{ v }}">{% endfor %}
+            {% endif %}
+        {% endfor %}
+        <label for="pagination-page-size-select" class="mb-0">Mostrar</label>
+        {% allowed_page_sizes as page_sizes %}
+        <select id="pagination-page-size-select" name="page_size" class="form-select form-select-sm"
+                onchange="this.form.submit()">
+            {% for size in page_sizes %}
+                <option value="{{ size }}" {% if size == page_obj.paginator.per_page %}selected{% endif %}>{{ size }}</option>
+            {% endfor %}
+        </select>
+        <span>registros</span>
+    </form>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="btn-group">
+        {% if page_obj.number > 1 %}
+        <a href="{% querystring page=1 %}" class="btn btn-secondary btn-sm" title="Primera página">&laquo;</a>
+        <a href="{% querystring page=page_obj.previous_page_number %}" class="btn btn-secondary btn-sm" title="Página anterior">&lsaquo;</a>
+        {% endif %}
+
+        {% for num in page_obj|page_number_window %}
+            {% if num == page_obj.number %}
+                <span class="btn btn-primary btn-sm disabled">{{ num }}</span>
+            {% else %}
+                <a href="{% querystring page=num %}" class="btn btn-secondary btn-sm">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="{% querystring page=page_obj.next_page_number %}" class="btn btn-secondary btn-sm" title="Página siguiente">&rsaquo;</a>
+        <a href="{% querystring page=page_obj.paginator.num_pages %}" class="btn btn-secondary btn-sm" title="Última página">&raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <span class="text-muted">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} registros)</span>
+</div>
+{% endif %}

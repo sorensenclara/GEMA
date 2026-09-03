@@ -5,7 +5,7 @@
 <div class="grupo-titulo">Cliente: {{ grupo.cliente }}</div>
 <table class="tabla-informe">
     <thead>
-        <tr><th>Cantidad</th><th>Tarea</th><th>Cantidad cargada</th><th>Tipo</th></tr>
+        <tr><th>Cantidad</th><th>Tarea</th><th>Cantidad cargada</th><th>Tipo</th><th>Precio</th></tr>
     </thead>
     <tbody>
         {% for fila in grupo.filas %}
@@ -14,9 +14,15 @@
             <td>{{ fila.tarea }}</td>
             <td>{% if fila.cant_cargada != '0.0' %}{{ fila.cant_cargada }}{% endif %}</td>
             <td>{{ fila.tipo }}</td>
+            <td>{{ fila.precio|floatformat:2 }}</td>
         </tr>
         {% endfor %}
+        <tr class="fila-total">
+            <td colspan="4">Total {{ grupo.cliente }}</td>
+            <td>{{ grupo.total|floatformat:2 }}</td>
+        </tr>
     </tbody>
 </table>
 {% endfor %}
+<div class="grupo-titulo">Total general: {{ total_general|floatformat:2 }}</div>
 {% endblock %}

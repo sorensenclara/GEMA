@@ -1,0 +1,63 @@
+from django.contrib.auth import get_user_model
+from django.core import mail
+from django.test import TestCase
+from django.urls import reverse
+
+from accounts.models import Role
+from empresas.models import Company
+from empresas.tests.factories import CompanyFactory
+
+User = get_user_model()
+
+
+class CompanyAdminPanelTests(TestCase):
+    def setUp(self):
+        self.superuser = User.objects.create_superuser(
+            username='super', email='super@example.com', password='testpass123',
+        )
+        self.client.force_login(self.superuser)
+
+    def test_company_list_renders(self):
+        CompanyFactory(nombre='Coopagro Tandil')
+
+        response = self.client.get(reverse('empresas:company-list'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Coopagro Tandil')
+
+    def test_company_create_creates_company_and_admin_user(self):
+        response = self.client.post(reverse('empresas:company-create'), {
+            'nombre': 'Nueva Cooperativa',
+            'admin_username': 'nueva_admin',
+            'admin_email': 'admin@nueva.example.com',
+            'veh_prefijo': 'V', 'veh_inicio': 1, 'veh_fin': 999, 'veh_actual': 1,
+            'dom_prefijo': 'D', 'dom_inicio': 1, 'dom_fin': 999, 'dom_actual': 1,
+        })
+
+        self.assertEqual(response.status_code, 302)
+        company = Company.objects.get(nombre='Nueva Cooperativa')
+        admin_user = User.objects.get(username='nueva_admin')
+        self.assertEqual(admin_user.company_id, company.pk)
+        self.assertEqual(admin_user.role, Role.ADMIN_EMPRESA)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('admin@nueva.example.com', mail.outbox[0].to)
+
+
+class CompanyProfileTests(TestCase):
+    def setUp(self):
+        self.company = CompanyFactory()
+        self.admin_user = User.objects.create_user(
+            username='empresa_admin', password='testpass123',
+            company=self.company, role=Role.ADMIN_EMPRESA,
+        )
+        self.client.force_login(self.admin_user)
+
+    def test_company_profile_updates_own_company(self):
+        response = self.client.post(reverse('empresas:company-profile'), {
+            'nombre': 'Nombre actualizado',
+            'smtp_email': '', 'smtp_password': '',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.company.refresh_from_db()
+        self.assertEqual(self.company.nombre, 'Nombre actualizado')

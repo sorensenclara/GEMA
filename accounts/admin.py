@@ -23,5 +23,5 @@ class UserAdmin(DjangoUserAdmin):
 
     def has_module_permission(self, request):
         # La gestión de usuarios de cada compañía se hace desde el portal
-        # público, no desde el admin de Django (ver app `portal`).
+        # público (ver accounts/views/user.py), no desde el admin de Django.
         return request.user.is_superuser

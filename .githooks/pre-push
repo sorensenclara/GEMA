@@ -1,0 +1,68 @@
+#!/bin/bash
+# Local safeguard against multi-dev conflicts, run before every push.
+# One-time setup per clone: git config core.hooksPath .githooks
+#
+# NOTE: this hook only runs if a dev has done the setup above, and can always
+# be skipped with `git push --no-verify`. It is a fast-feedback convenience,
+# not a hard guarantee -- the only non-bypassable enforcement is a server-side
+# pre-receive hook, which needs GitLab admin/server access to install.
+#
+# Checks:
+#   1. No merge commits in what's about to be pushed -- this team's workflow
+#      is "rebase before push", and `git pull` (without --rebase) silently
+#      creates a merge commit instead. A merge commit still fast-forwards the
+#      remote, so plain git accepts the push; this catches it before that.
+#   2. django-linear-migrations system checks (dlm.E001-E005) -- catches
+#      multiple-leaf-node migration conflicts (two devs adding a migration
+#      for the same app off the same base) as soon as they exist locally,
+#      instead of waiting for `migrate` to fail later.
+#   3. `makemigrations --check --dry-run` -- catches model changes committed
+#      without a corresponding migration file.
+set -e
+
+zero="0000000000000000000000000000000000000000"
+merge_found=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    # Deleting a branch, or pushing a brand-new branch with no remote history
+    # to diff against -- nothing to check for merge commits.
+    if [ "$local_sha" = "$zero" ] || [ "$remote_sha" = "$zero" ]; then
+        continue
+    fi
+
+    merges=$(git rev-list --merges "$remote_sha..$local_sha")
+    if [ -n "$merges" ]; then
+        merge_found=1
+        echo "[pre-push] Merge commit(s) found on $local_ref, about to be pushed to $remote_ref:"
+        git log --oneline --merges "$remote_sha..$local_sha"
+    fi
+done
+
+if [ "$merge_found" = "1" ]; then
+    echo ""
+    echo "[pre-push] BLOCKED: this branch contains merge commits."
+    echo "This project's workflow is rebase-before-push, not merge. If this came"
+    echo "from a plain 'git pull', undo it and rebase instead:"
+    echo ""
+    echo "    git pull --rebase"
+    echo ""
+    echo "or, if you already merged locally:"
+    echo ""
+    echo "    git reset --hard @{u}   # careful: discards the local merge commit"
+    echo "    git rebase <target-branch>"
+    echo ""
+    echo "To push anyway (not recommended): git push --no-verify"
+    exit 1
+fi
+
+if [ -f .venv/bin/activate ]; then
+    source .venv/bin/activate
+fi
+
+echo "[pre-push] Running Django system checks (includes migration-graph checks)..."
+python manage.py check
+
+echo "[pre-push] Checking for missing migrations..."
+python manage.py makemigrations --check --dry-run
+
+echo "[pre-push] All checks passed."

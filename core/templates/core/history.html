@@ -1,0 +1,52 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block page_title %}<h4 class="mb-0">{{ page_title }}</h4>{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        {% if back_url %}
+        <a href="{{ back_url }}" class="btn btn-secondary btn-sm mb-3">
+            <i class="mdi mdi-arrow-left"></i> Volver{% if list_label %} a {{ list_label }}{% endif %}
+        </a>
+        {% endif %}
+
+        {% if not page_obj.object_list %}
+        <p class="text-muted">Este registro todavía no tiene cambios registrados.</p>
+        {% else %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Tipo de cambio</th>
+                    <th>Campos modificados</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in page_obj %}
+                <tr>
+                    <td>{{ record.history_date }}</td>
+                    <td>{{ record.history_user|default:"—" }}</td>
+                    <td>{{ record.get_history_type_display }}</td>
+                    <td>
+                        {% if record.has_previous_record %}
+                            {% for change in record.computed_changes %}
+                                <div><strong>{{ change.field }}</strong>: {{ change.old }} → {{ change.new }}</div>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">Versión inicial</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% include "core/partials/_pagination.html" %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -32,7 +32,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool('DJANGO_DEBUG', default=False)
 
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(" ")
 
@@ -50,14 +50,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'dal',
     'dal_select2',
+    'django_linear_migrations',
+    'simple_history',
+    'django_filters',
+    'core',
     'accounts',
     'empresas',
-    'portal',
-    'panel',
     'cliente',
     'matafuegos',
     'orden_trabajo',
-    'parametros',
     'reports',
     'import_export',
     'corsheaders'
@@ -66,9 +67,9 @@ INSTALLED_APPS = [
 
 AUTH_USER_MODEL = 'accounts.User'
 
-LOGIN_URL = 'portal:login'
-LOGIN_REDIRECT_URL = 'portal:dashboard'
-LOGOUT_REDIRECT_URL = 'portal:login'
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'raiz'
+LOGOUT_REDIRECT_URL = 'login'
 
 # Email transaccional de la plataforma (invitaciones, recuperación de
 # contraseña). Es independiente del SMTP por-compañía (Company.smtp_email/
@@ -87,6 +88,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.CurrentUserMiddleware',
 ]
 
 ROOT_URLCONF = 'gema.urls'
@@ -119,8 +121,8 @@ DATABASES = {
     'NAME': env('DATABASE_NAME'),
     'USER': env('DATABASE_USER'),
     'PASSWORD': env('DATABASE_PASS'),
-    'HOST': 'localhost',
-    'PORT': '5432',
+    'HOST': env('DATABASE_HOST', default='localhost'),
+    'PORT': env('DATABASE_PORT', default='5432'),
     # 'template1' en este servidor quedó con una versión de collation vieja;
     # se crea la base de test desde 'template0' para evitar el error de Postgres.
     'TEST': {'TEMPLATE': 'template0'},
@@ -183,7 +185,7 @@ EMAIL_PORT= 587
 
 
 CRONJOBS = [
-    ('0 0 * * *','matafuegos.cron.matafuegos_vencidos'),
+    ('0 0 * * *','matafuegos.tasks.matafuegos_vencidos'),
 ]
 
 CSRF_TRUSTED_ORIGINS = ['https://'+env("DJANGO_DOMINIO")]

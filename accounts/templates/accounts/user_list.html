@@ -1,0 +1,73 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Usuarios - GEMA{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'lexa/libs/datatables.net-bs4/css/dataTables.bootstrap4.min.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block page_title %}
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-flex align-items-center justify-content-between">
+            <h4 class="mb-0">Usuarios de {{ user.company.nombre }}</h4>
+            <a href="{% url 'accounts:user-create' %}" class="btn btn-primary waves-effect waves-light"><i class="mdi mdi-plus me-1"></i> Nuevo usuario</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="datatable-usuarios" class="table table-centered table-nowrap mb-0">
+                <thead>
+                    <tr><th>Usuario</th><th>Email</th><th>Rol</th><th>Cliente</th><th>Estado</th><th>Acciones</th></tr>
+                </thead>
+                <tbody>
+                    {% for u in usuarios %}
+                    <tr>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>{{ u.get_role_display }}</td>
+                        <td>{{ u.cliente|default:"-" }}</td>
+                        <td>
+                            {% if u.is_active %}
+                                <span class="badge bg-success">Activo</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'accounts:user-update' u.pk %}" class="text-primary" title="Editar"><i class="mdi mdi-pencil font-size-18"></i></a>
+                            <a href="{% url 'accounts:user-password-change' u.pk %}" class="text-primary" title="Cambiar contraseña"><i class="mdi mdi-lock-reset font-size-18"></i></a>
+                            {% if u.pk != user.pk %}
+                            <form method="post" action="{% url 'accounts:user-toggle-active' u.pk %}" style="display:inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link p-0 {% if u.is_active %}text-danger{% else %}text-success{% endif %}" title="{% if u.is_active %}Desactivar{% else %}Activar{% endif %}">
+                                    <i class="mdi {% if u.is_active %}mdi-close-circle{% else %}mdi-check-circle{% endif %} font-size-18"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'lexa/libs/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'lexa/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+<script>
+$(function () {
+    $('#datatable-usuarios').DataTable({
+        language: { search: 'Buscar:', lengthMenu: 'Mostrar _MENU_ filas', info: 'Mostrando _START_ a _END_ de _TOTAL_', paginate: { previous: 'Anterior', next: 'Siguiente' }, zeroRecords: 'Todavía no hay usuarios cargados.' },
+    });
+});
+</script>
+{% endblock %}

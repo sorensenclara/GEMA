@@ -1,0 +1,60 @@
+stages:
+  - checks
+
+# Both jobs below need real settings values (gema/settings.py reads them via
+# django-environ's env(...), which falls back to the process environment when
+# gema/.env doesn't exist in the checkout) and, since DATABASES is Postgres-only,
+# a database service to connect to.
+.django_env: &django_env
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  SECRET_KEY: "ci-secret-key-not-for-production"
+  DATABASE_NAME: gema_ci
+  DATABASE_USER: gema_ci
+  DATABASE_PASS: gema_ci
+  DATABASE_HOST: postgres
+  POSTGRES_DB: gema_ci
+  POSTGRES_USER: gema_ci
+  POSTGRES_PASSWORD: gema_ci
+  DJANGO_SUPERUSER_USERNAME: admin
+  DJANGO_SUPERUSER_EMAIL: admin@example.com
+  DJANGO_SUPERUSER_PASSWORD: ci-superuser-password
+  DJANGO_ALLOWED_HOSTS: "localhost 127.0.0.1"
+  DJANGO_DOMINIO: localhost
+
+# Backstop for the local pre-push hook (.githooks/pre-push): catches the same
+# two multi-dev migration failure modes even if a hook was skipped, disabled,
+# or never installed on someone's machine.
+migration-checks:
+  stage: checks
+  image: python:3.12-slim
+  services:
+    - postgres:16
+  variables:
+    <<: *django_env
+  cache:
+    paths:
+      - .cache/pip
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    # django-linear-migrations system checks (dlm.E001-E005): fails if any
+    # app has multiple leaf migrations (the classic "two devs, same base,
+    # same migration number" conflict) or if max_migration.txt drifted.
+    - python manage.py check
+    # Fails if model changes were committed without a matching migration.
+    - python manage.py makemigrations --check --dry-run
+
+test:
+  stage: checks
+  image: python:3.12-slim
+  services:
+    - postgres:16
+  variables:
+    <<: *django_env
+  cache:
+    paths:
+      - .cache/pip
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - pytest -m "not e2e"

@@ -5,7 +5,7 @@ from .models import Company
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'is_active', 'fecha_creacion')
+    list_display = ('nombre', 'is_active', 'created_at')
     list_filter = ('is_active',)
     search_fields = ('nombre',)
     fieldsets = (
@@ -21,7 +21,7 @@ class CompanyAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request):
         # La creación/administración de compañías es exclusiva del superadmin,
-        # desde este admin o el panel dedicado (ver app `panel`).
+        # desde este admin o las vistas dedicadas (ver empresas/views/company_admin.py).
         return request.user.is_superuser
 
     def has_view_permission(self, request, obj=None):

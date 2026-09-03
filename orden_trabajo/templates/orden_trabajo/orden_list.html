@@ -1,0 +1,138 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Órdenes de trabajo - GEMA{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'lexa/libs/datatables.net-bs4/css/dataTables.bootstrap4.min.css' %}" rel="stylesheet" type="text/css">
+<link href="{% static 'lexa/libs/datatables.net-buttons-bs4/css/buttons.bootstrap4.min.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block page_title %}
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-flex align-items-center justify-content-between">
+            <h4 class="mb-0">Órdenes de trabajo</h4>
+            <div>
+                <a href="{% url 'orden_trabajo:orden-informe-facturacion-ultima-semana' %}" class="btn btn-outline-secondary waves-effect me-1"><i class="mdi mdi-file-document-outline me-1"></i> Facturación última semana</a>
+                <a href="{% url 'orden_trabajo:orden-create' %}" class="btn btn-primary waves-effect waves-light"><i class="mdi mdi-plus me-1"></i> Nueva orden</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <select name="estado" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todos los estados</option>
+                    {% for valor, etiqueta in estados %}
+                    <option value="{{ valor }}" {% if request.GET.estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="tipo_matafuego" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todos los tipos</option>
+                    {% for tipo in tipos_matafuego %}
+                    <option value="{{ tipo.pk }}" {% if request.GET.tipo_matafuego == tipo.pk|stringformat:"s" %}selected{% endif %}>{{ tipo.tipo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="categoria_matafuego" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todas las categorías</option>
+                    {% for valor, etiqueta in categorias_matafuego %}
+                    <option value="{{ valor }}" {% if request.GET.categoria_matafuego == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+
+        <form method="post" action="{% url 'orden_trabajo:orden-accion-masiva' %}">
+            {% csrf_token %}
+            <div class="table-responsive">
+                <table id="datatable-ordenes" class="table table-centered table-nowrap mb-0">
+                    <thead>
+                        <tr><th></th><th>N°</th><th>Cliente</th><th>Matafuego</th><th>Categoría</th><th>Estado</th><th>Fecha cierre</th><th>Monto</th><th>Acciones</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for o in ordenes %}
+                        <tr>
+                            <td><input type="checkbox" name="seleccionadas" value="{{ o.pk }}" class="form-check-input"></td>
+                            <td>{{ o.id }}</td>
+                            <td>{{ o.cliente }}</td>
+                            <td>{{ o.matafuegos }}</td>
+                            <td>
+                                {% if o.matafuegos.categoria == 'v' %}
+                                    <span class="badge bg-info" title="Oblea DPS vehicular"><i class="mdi mdi-car me-1"></i>Vehicular</span>
+                                {% elif o.matafuegos.categoria == 'd' %}
+                                    <span class="badge bg-secondary" title="Oblea DPS domiciliaria"><i class="mdi mdi-home me-1"></i>Domiciliario</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ o.matafuegos.get_categoria_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge bg-info">{{ o.get_estado_display }}</span></td>
+                            <td>{{ o.fecha_cierre|default:"-" }}</td>
+                            <td>{{ o.monto_total }}</td>
+                            <td class="text-nowrap">
+                                <a href="{% url 'orden_trabajo:orden-update' o.pk %}" class="text-primary" title="Editar"><i class="mdi mdi-pencil font-size-18"></i></a>
+                                <a href="{% url 'orden_trabajo:orden-informe' o.pk %}" class="text-primary" title="Informe"><i class="mdi mdi-file-pdf-box font-size-18"></i></a>
+                                {% if o.estado == 'p' %}
+                                <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'iniciar' %}" class="btn btn-link p-0 border-0 text-primary align-baseline" title="Pasar a en proceso"><i class="mdi mdi-play-circle-outline font-size-18"></i></button>
+                                {% elif o.estado == 'ep' %}
+                                <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'finalizar' %}" class="btn btn-link p-0 border-0 text-success align-baseline" title="Finalizar"><i class="mdi mdi-check-circle-outline font-size-18"></i></button>
+                                <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'cancelar' %}" class="btn btn-link p-0 border-0 text-danger align-baseline" title="Cancelar" onclick="return confirm('¿Cancelar la orden N° {{ o.id }}?');"><i class="mdi mdi-close-circle-outline font-size-18"></i></button>
+                                {% elif o.estado == 'f' %}
+                                <button type="button" class="btn btn-link p-0 border-0 text-primary align-baseline btn-imprimir-orden" data-pk="{{ o.pk }}" title="Imprimir oblea DPS"><i class="mdi mdi-printer font-size-18"></i></button>
+                                {% elif o.estado == 'i' %}
+                                <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'facturar' %}" class="btn btn-link p-0 border-0 text-primary align-baseline" title="Facturar"><i class="mdi mdi-cash-register font-size-18"></i></button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3 p-2 rounded" id="acciones-masivas-obleas">
+                <span class="text-muted me-2">Con las órdenes tildadas:</span>
+                <button class="btn btn-outline-primary waves-effect" type="submit" name="accion" value="oblea_vehicular">Oblea DPS vehicular</button>
+                <button class="btn btn-outline-primary waves-effect" type="submit" name="accion" value="oblea_domiciliaria">Oblea DPS domiciliaria</button>
+                <button class="btn btn-outline-secondary waves-effect" type="submit" name="accion" value="informe_facturacion">Informe facturación</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'lexa/libs/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'lexa/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+<script>
+$(function () {
+    // paging desactivado a propósito: esta tabla tiene checkboxes por fila
+    // para las acciones masivas de abajo, y con paginado las filas de otras
+    // páginas se desprenden del <form> al navegar, perdiendo su selección.
+    $('#datatable-ordenes').DataTable({
+        paging: false,
+        columnDefs: [{ orderable: false, targets: [0, 8] }],
+        language: { search: 'Buscar:', info: 'Mostrando _TOTAL_ órdenes', infoEmpty: 'No hay órdenes cargadas todavía.', zeroRecords: 'No se encontraron órdenes.' },
+    });
+
+    // El botón "Imprimir" de una orden Finalizada no envía nada por sí solo:
+    // la oblea real se emite de a pares desde la acción masiva de abajo (ver
+    // OrdenAccionMasivaView), así que este botón solo tilda la fila y lleva
+    // la vista hasta ahí para que el usuario complete el par.
+    $('.btn-imprimir-orden').on('click', function () {
+        var pk = $(this).data('pk');
+        $('input[name="seleccionadas"][value="' + pk + '"]').prop('checked', true);
+        var $destino = $('#acciones-masivas-obleas');
+        $('html, body').animate({ scrollTop: $destino.offset().top - 100 }, 300);
+        $destino.addClass('bg-light border border-primary');
+        setTimeout(function () { $destino.removeClass('bg-light border border-primary'); }, 2000);
+    });
+});
+</script>
+{% endblock %}

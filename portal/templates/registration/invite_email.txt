@@ -1,9 +1,0 @@
-Hola {{ user.username }},
-
-Te invitaron a usar GEMA como parte de la compañía {{ user.company.nombre }}.
-
-Para definir tu contraseña e ingresar, entrá al siguiente link:
-
-{{ protocol }}://{{ domain }}{% url 'portal:password_reset_confirm' uidb64=uid token=token %}
-
-Si no esperabas este email, podés ignorarlo.

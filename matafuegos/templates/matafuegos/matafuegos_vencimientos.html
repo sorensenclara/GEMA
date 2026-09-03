@@ -1,0 +1,33 @@
+{% extends "core/base.html" %}
+{% block title %}Alerta de vencimientos - GEMA{% endblock %}
+
+{% block page_title %}
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <h4 class="mb-0">Alerta de vencimientos</h4>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:480px;">
+    <div class="card-body">
+        <p class="card-title-desc">Indicá el rango de fechas para el vencimiento de carga.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label" for="inicio">Fecha inicio</label>
+                <input type="date" class="form-control" id="inicio" name="inicio" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="fin">Fecha fin</label>
+                <input type="date" class="form-control" id="fin" name="fin" required>
+            </div>
+            <button class="btn btn-primary waves-effect waves-light" type="submit">Generar informe</button>
+            <a href="{% url 'matafuegos:list' %}" class="btn btn-secondary waves-effect">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

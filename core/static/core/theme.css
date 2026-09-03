@@ -1,0 +1,201 @@
+/* Colores y tipografía de marca GEMA sobre el theme Lexa (bootstrap.min.css /
+app.min.css). En vez de pelear con las custom properties del vendor (cambian
+de significado según data-layout/data-topbar, varias veces con la misma
+especificidad que un override en :root, así que quién gana depende del orden
+de aparición) se pisa directo con selectores concretos + !important sobre
+los elementos que realmente usamos. Menos elegante, mucho más predecible. */
+
+@import url('https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap');
+
+/* {{ form.non_field_errors }} (errores de ValidationError sin campo asociado,
+ej. las reglas de Model.clean()) se renderiza como <ul class="errorlist
+nonfield"> sin ningún estilo -- bootstrap.min.css no define nada para
+.errorlist. El error existe y bloquea el guardado (el ModelForm SÍ lo valida),
+pero al no verse el usuario percibe "no pasó nada". Se usa en los ~11
+formularios de la app (matafuegos, cliente, orden, tarea, accounts, empresa),
+así que se corrige acá una sola vez en vez de tocar cada template. */
+.errorlist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.errorlist.nonfield {
+    background-color: #fdecea;
+    border: 1px solid #c62828;
+    border-radius: .25rem;
+    color: #c62828;
+    font-weight: 600;
+    padding: .75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+body, .btn, .form-control, .form-select, .card, .dropdown-menu, table,
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Titillium Web', -apple-system, "Segoe UI", Roboto, Arial, sans-serif !important;
+}
+
+/* Tipografía +2px sobre el tamaño base del theme (13px) en todo el texto de
+uso general -- cada regla suma 2px al valor propio que ya traía ese elemento
+en bootstrap.min.css/app.min.css, no un tamaño arbitrario. */
+body, .btn, .form-control, .form-select, table, .dropdown-menu, .dropdown-item,
+.topnav .navbar-nav .nav-link {
+    font-size: 15px !important; /* antes 13-14px */
+}
+
+h1 { font-size: 2.15625rem !important; } /* antes 2.03125rem (~32.5px) */
+h2 { font-size: 1.75rem !important; }     /* antes 1.625rem (26px) */
+h3 { font-size: 1.546875rem !important; } /* antes 1.421875rem (~22.75px) */
+h4 { font-size: 1.34375rem !important; }  /* antes 1.21875rem (19.5px) */
+h5 { font-size: 1.140625rem !important; } /* antes 1.015625rem (~16.25px) */
+h6 { font-size: 0.9375rem !important; }   /* antes 0.8125rem (13px) */
+
+/* --- Íconos más grandes: menú horizontal y acciones de tabla --- */
+
+/* Íconos del menú (arriba del texto de cada nav-link, ver _horizontal-nav.scss). */
+.topnav .navbar-nav .nav-link i {
+    font-size: 20px !important; /* antes 16px */
+}
+
+/* Íconos de acciones en tablas (editar/eliminar/etc, clase .font-size-18 del
+vendor combinada con .mdi en los listados). Se apunta a .mdi.font-size-18
+puntualmente -- esa utility class sola también se usa en algunos <h4> de las
+pantallas de login/reset de contraseña, que no son "íconos de tabla". */
+.mdi.font-size-18 {
+    font-size: 22px !important; /* antes 18px */
+}
+
+/* Las acciones de tabla mezclan <a> sueltas (editar/informe) con
+<button class="btn btn-link p-0"> dentro de un <form> (eliminar/activar/
+enviar por email/cambiar estado) -- .btn del vendor le suma a esos botones
+un borde invisible (1px solid transparent) y vertical-align:middle que las
+<a> vecinas no tienen, así que quedaban de tamaño y alineación distintos en
+la misma celda. orden_list.html ya traía este ajuste a mano (clases
+border-0 align-baseline); se generaliza acá para que aplique en todas las
+grillas (clientes, matafuegos, usuarios) sin repetirlo por template. */
+.btn-link.p-0 {
+    border: 0;
+    vertical-align: baseline;
+}
+
+/* --- Naranja GEMA: botones y cards --- */
+:root {
+    --bs-primary: #EC6C05;
+    /* .bg-primary/.text-primary usan esta variante RGB para poder aplicar
+    opacidad (rgba(var(--bs-primary-rgb), ...)) -- sin esto, las cards
+    bg-primary del dashboard seguían con el color original del theme. */
+    --bs-primary-rgb: 236, 108, 5;
+    /* El --bs-danger del vendor (#ec536c) es un rojo pastel poco contrastado
+    -- los íconos de eliminar/desactivar (.text-danger) quedaban débiles al
+    lado del naranja de editar/PDF. Mismo rojo que .btn-danger en el panel de
+    superadmin (empresas/panel_base.html), para mantener un solo "rojo GEMA". */
+    --bs-danger: #c62828;
+    --bs-danger-rgb: 198, 40, 40;
+}
+
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: #EC6C05 !important;
+    border-color: #EC6C05 !important;
+}
+
+.btn-outline-primary {
+    color: #EC6C05 !important;
+    border-color: #EC6C05 !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:active {
+    background-color: #EC6C05 !important;
+    border-color: #EC6C05 !important;
+    color: #fff !important;
+}
+
+/* --- Layout horizontal: topbar blanco (logo + perfil) --- */
+#page-topbar,
+.navbar-header {
+    background-color: #fff !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+}
+
+.navbar-brand-box .logo img {
+    display: block;
+}
+
+/* Botón de cuenta (usuario/rol) dentro del topbar blanco -- texto/ícono
+oscuros para que se lean sobre fondo blanco, en vez de depender de la
+variable de color del vendor (cambia de valor según data-topbar/data-layout,
+mismo problema de cascada que el fondo). */
+#page-header-user-dropdown,
+#page-header-user-dropdown:hover,
+#page-header-user-dropdown:focus {
+    color: #495057 !important;
+}
+
+.dropdown-menu {
+    color: #495057;
+}
+
+/* --- Distribución exacta de Lexa: topbar blanco / franja de título azul /
+menú blanco --- */
+
+/* Franja entre el topbar y el menú: azul GEMA, sin título (se eliminó el
+texto de página, la franja queda como acento visual). */
+.page-title-content {
+    background-color: #1B4B8D !important;
+}
+
+/* Menú horizontal: blanco, con el mismo color de texto que usa el botón de
+cuenta del topbar (no depender de las variables del theme -- ver más arriba).
+Ojo: NO incluir .top-navigation acá -- es el contenedor padre de la franja
+azul (.page-title-content) y del propio menú, con padding horizontal propio;
+pintarlo de blanco generaba un marco blanco a los costados de la franja azul. */
+.topnav,
+.topnav-menu {
+    background-color: #fff !important;
+}
+
+/* Lexa logra que el menú "flote" sobre el contenido de abajo (en vez de ser
+una franja más, separada por un simple margen) con box-shadow hacia arriba +
+esquinas redondeadas + margin-bottom negativo que solapa el propio topnav con
+el padding superior de .page-content. Son propiedades del vendor (app.min.css)
+-- se repiten acá en vez de confiar en que ninguna otra regla las pise, mismo
+criterio que el resto de este archivo. */
+.topnav {
+    position: relative;
+    z-index: 100;
+    border-radius: 3px;
+    margin-bottom: -40px !important;
+    box-shadow: 0 -3px 31px 0 rgba(0, 0, 0, .05), 0 6px 20px 0 rgba(0, 0, 0, .02) !important;
+}
+
+/* El box-shadow/border-radius del vendor da un acabado prolijo, pero por sí
+solos no generan superposición real -- acá sí queremos que el menú blanco
+tape visiblemente el borde inferior de la franja azul, no solo quede pegado
+debajo. .topnav es hijo directo de un .container-fluid sin padding vertical
+propio, así que el margen no queda contenido: este margin-top negativo
+empuja tanto al wrapper como al menú hacia arriba, sobre la franja azul
+(los elementos posteriores en el DOM pintan encima en la zona de solape,
+sin necesitar z-index para esto). */
+.topnav {
+    margin-top: -20px;
+}
+
+.topnav .navbar-nav .nav-link {
+    color: #495057 !important;
+}
+
+.topnav .navbar-nav .nav-link:hover,
+.topnav .navbar-nav .nav-link:focus,
+.topnav .navbar-nav .nav-link.active {
+    color: #EC6C05 !important;
+}
+
+/* Botón "Salir": es un <button> dentro de un <form>, se lo estiliza como el
+resto de los nav-link para que quede alineado en la misma fila que Inicio. */
+.topnav .navbar-nav .nav-link.btn {
+    padding: .75rem 1.1rem;
+    font-size: 14px;
+}

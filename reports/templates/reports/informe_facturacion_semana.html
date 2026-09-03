@@ -5,7 +5,7 @@
 <div class="grupo-titulo">{{ grupo.cliente }}</div>
 <table class="tabla-informe">
     <thead>
-        <tr><th>Cliente</th><th>Orden</th><th>Matafuego</th><th>Fecha cierre</th><th>Tarea</th><th>Cantidad</th></tr>
+        <tr><th>Cliente</th><th>Orden</th><th>Matafuego</th><th>Fecha cierre</th><th>Tarea</th><th>Cantidad</th><th>Precio</th></tr>
     </thead>
     <tbody>
         {% for fila in grupo.filas %}
@@ -16,9 +16,15 @@
             <td>{% if fila.primera %}{{ fila.orden.fecha_cierre|date:"d/m/Y"|default:"-" }}{% endif %}</td>
             <td>{{ fila.tarea.tarea.nombre }}</td>
             <td>{{ fila.tarea.cant_cargada }}</td>
+            <td>{{ fila.precio|floatformat:2 }}</td>
         </tr>
         {% endfor %}
+        <tr class="fila-total">
+            <td colspan="6">Total {{ grupo.cliente }}</td>
+            <td>{{ grupo.total|floatformat:2 }}</td>
+        </tr>
     </tbody>
 </table>
 {% endfor %}
+<div class="grupo-titulo">Total general: {{ total_general|floatformat:2 }}</div>
 {% endblock %}

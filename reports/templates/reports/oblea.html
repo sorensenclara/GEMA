@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    @page {
+        size: {{ ancho_pagina }} {{ alto_pagina }};
+        margin: 0;
+    }
+    * { margin: 0; padding: 0; }
+    .pagina {
+        position: relative;
+        width: {{ ancho_pagina }};
+        height: {{ alto_pagina }};
+    }
+    .pagina.con_salto {
+        page-break-after: always;
+    }
+    .campo {
+        position: absolute;
+        font-family: 'Helvetica', 'DejaVu Sans', Arial, sans-serif;
+        white-space: nowrap;
+    }
+</style>
+</head>
+<body>
+    {% for pagina in paginas %}
+    <div class="pagina{% if not forloop.last %} con_salto{% endif %}">
+        {% for campo in pagina %}
+        <span class="campo" style="left: {{ campo.x }}pt; bottom: {{ campo.y }}pt; font-size: {{ campo.font_size }}pt;">{{ campo.texto }}</span>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</body>
+</html>
