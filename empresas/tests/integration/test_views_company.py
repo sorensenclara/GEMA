@@ -42,6 +42,26 @@ class CompanyAdminPanelTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('admin@nueva.example.com', mail.outbox[0].to)
 
+    def test_company_create_rejects_existing_admin_username(self):
+        User.objects.create_user(
+            username='admin_existente', password='testpass123',
+        )
+
+        response = self.client.post(reverse('empresas:company-create'), {
+            'nombre': 'Nueva Cooperativa',
+            'admin_username': 'admin_existente',
+            'admin_email': 'admin@nueva.example.com',
+            'veh_prefijo': 'V', 'veh_inicio': 1, 'veh_fin': 999, 'veh_actual': 1,
+            'dom_prefijo': 'D', 'dom_inicio': 1, 'dom_fin': 999, 'dom_actual': 1,
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'Ya existe un usuario con este nombre de usuario.',
+        )
+        self.assertFalse(Company.objects.filter(nombre='Nueva Cooperativa').exists())
+
 
 class CompanyProfileTests(TestCase):
     def setUp(self):

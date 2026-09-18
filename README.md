@@ -93,3 +93,17 @@ checks van a fallar con `dlm.E001`.
 Un `git pull` sin `--rebase` crea un merge commit; `.githooks/pre-push`
 bloquea un push que contenga merge commits. Configuración recomendada
 (no forzada, solo cambia el default): `git config --global pull.rebase true`.
+
+
+
+## Carga de datos
+
+python manage.py import_categorias
+python manage.py import_marcas
+python manage.py import_tipos_matafuegos
+
+
+#Para datos de prueba
+Clientes, matagueros, tareas y ordenes de trabajo
+Las tareas las crea para la empresa con id 1- Matafuegos fenix
+python manage.py seed_demo_data

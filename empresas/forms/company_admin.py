@@ -1,6 +1,9 @@
 from django import forms
+from django.contrib.auth import get_user_model
 
 from empresas.models import Company
+
+User = get_user_model()
 
 
 class CompanyCreateForm(forms.ModelForm):
@@ -14,6 +17,14 @@ class CompanyCreateForm(forms.ModelForm):
             'veh_prefijo', 'veh_inicio', 'veh_fin', 'veh_actual',
             'dom_prefijo', 'dom_inicio', 'dom_fin', 'dom_actual',
         ]
+
+    def clean_admin_username(self):
+        username = self.cleaned_data['admin_username']
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError(
+                'Ya existe un usuario con este nombre de usuario.'
+            )
+        return username
 
 
 class CompanyRangesForm(forms.ModelForm):
