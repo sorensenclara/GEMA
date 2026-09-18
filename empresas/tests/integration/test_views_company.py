@@ -55,9 +55,56 @@ class CompanyProfileTests(TestCase):
     def test_company_profile_updates_own_company(self):
         response = self.client.post(reverse('empresas:company-profile'), {
             'nombre': 'Nombre actualizado',
+            'veh_prefijo': 'V', 'veh_inicio': 1, 'veh_fin': 999, 'veh_actual': 1,
+            'dom_prefijo': 'D', 'dom_inicio': 1, 'dom_fin': 999, 'dom_actual': 1,
             'smtp_email': '', 'smtp_password': '',
         })
 
         self.assertEqual(response.status_code, 302)
         self.company.refresh_from_db()
         self.assertEqual(self.company.nombre, 'Nombre actualizado')
+
+    def test_company_profile_updates_dps_numbering(self):
+        response = self.client.post(reverse('empresas:company-profile'), {
+            'nombre': self.company.nombre,
+            'veh_prefijo': 'VX', 'veh_inicio': 10, 'veh_fin': 500, 'veh_actual': 20,
+            'dom_prefijo': 'DX', 'dom_inicio': 5, 'dom_fin': 300, 'dom_actual': 15,
+            'smtp_email': '', 'smtp_password': '',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.company.refresh_from_db()
+        self.assertEqual(self.company.veh_prefijo, 'VX')
+        self.assertEqual(self.company.veh_inicio, 10)
+        self.assertEqual(self.company.veh_fin, 500)
+        self.assertEqual(self.company.veh_actual, 20)
+        self.assertEqual(self.company.dom_prefijo, 'DX')
+        self.assertEqual(self.company.dom_inicio, 5)
+        self.assertEqual(self.company.dom_fin, 300)
+        self.assertEqual(self.company.dom_actual, 15)
+
+    def test_company_profile_updates_numero_recargador(self):
+        response = self.client.post(reverse('empresas:company-profile'), {
+            'nombre': self.company.nombre,
+            'numero_recargador': '150',
+            'veh_prefijo': 'V', 'veh_inicio': 1, 'veh_fin': 999, 'veh_actual': 1,
+            'dom_prefijo': 'D', 'dom_inicio': 1, 'dom_fin': 999, 'dom_actual': 1,
+            'smtp_email': '', 'smtp_password': '',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.company.refresh_from_db()
+        self.assertEqual(self.company.numero_recargador, '150')
+
+    def test_company_profile_cannot_deactivate_company(self):
+        response = self.client.post(reverse('empresas:company-profile'), {
+            'nombre': self.company.nombre,
+            'is_active': False,
+            'veh_prefijo': 'V', 'veh_inicio': 1, 'veh_fin': 999, 'veh_actual': 1,
+            'dom_prefijo': 'D', 'dom_inicio': 1, 'dom_fin': 999, 'dom_actual': 1,
+            'smtp_email': '', 'smtp_password': '',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.company.refresh_from_db()
+        self.assertTrue(self.company.is_active)

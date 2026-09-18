@@ -7,6 +7,7 @@ class Company(AuditModel):
     nombre = models.CharField('Nombre', max_length=200)
     logo = models.ImageField('Logo', upload_to='company_logos/', null=True, blank=True)
     is_active = models.BooleanField('Activa', default=True)
+    numero_recargador = models.CharField('Número de recargador', max_length=10, blank=True, default='')
 
     # Numeración DPS
     veh_inicio = models.IntegerField('VEH inicio', default=0)

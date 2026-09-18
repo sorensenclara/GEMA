@@ -1,8 +1,15 @@
 import os
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
-from reports.services.branding import DEFAULT_LOGO_PATH, resolve_logo_path, resolve_logo_uri
+from orden_trabajo.tests.factories import OrdenesDeTrabajoFactory
+from reports.services.branding import (
+    DEFAULT_LOGO_PATH,
+    DEFAULT_NUMERO_RECARGADOR,
+    resolve_logo_path,
+    resolve_logo_uri,
+    resolve_numero_recargador,
+)
 
 
 class DefaultLogoPathTests(SimpleTestCase):
@@ -21,3 +28,16 @@ class DefaultLogoPathTests(SimpleTestCase):
         uri = resolve_logo_uri(None)
         self.assertTrue(uri.startswith('file://'))
         self.assertTrue(uri.endswith('gema-logo.png'))
+
+
+class ResolveNumeroRecargadorTests(TestCase):
+    def test_without_company_returns_default(self):
+        self.assertEqual(resolve_numero_recargador(None), DEFAULT_NUMERO_RECARGADOR)
+
+    def test_company_without_numero_recargador_returns_default(self):
+        orden = OrdenesDeTrabajoFactory(matafuegos__cliente__company__numero_recargador='')
+        self.assertEqual(resolve_numero_recargador(orden), DEFAULT_NUMERO_RECARGADOR)
+
+    def test_company_with_numero_recargador_returns_its_own_value(self):
+        orden = OrdenesDeTrabajoFactory(matafuegos__cliente__company__numero_recargador='150')
+        self.assertEqual(resolve_numero_recargador(orden), '150')

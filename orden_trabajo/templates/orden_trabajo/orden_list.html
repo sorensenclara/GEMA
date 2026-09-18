@@ -14,6 +14,7 @@
             <h4 class="mb-0">Órdenes de trabajo</h4>
             <div>
                 <a href="{% url 'orden_trabajo:orden-informe-facturacion-ultima-semana' %}" class="btn btn-outline-secondary waves-effect me-1"><i class="mdi mdi-file-document-outline me-1"></i> Facturación última semana</a>
+                <a href="{% url 'orden_trabajo:orden-informe-recargas' %}" class="btn btn-outline-secondary waves-effect me-1"><i class="mdi mdi-file-chart-outline me-1"></i> Informe de recargas</a>
                 <a href="{% url 'orden_trabajo:orden-create' %}" class="btn btn-primary waves-effect waves-light"><i class="mdi mdi-plus me-1"></i> Nueva orden</a>
             </div>
         </div>
@@ -86,7 +87,7 @@
                                 <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'finalizar' %}" class="btn btn-link p-0 border-0 text-success align-baseline" title="Finalizar"><i class="mdi mdi-check-circle-outline font-size-18"></i></button>
                                 <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'cancelar' %}" class="btn btn-link p-0 border-0 text-danger align-baseline" title="Cancelar" onclick="return confirm('¿Cancelar la orden N° {{ o.id }}?');"><i class="mdi mdi-close-circle-outline font-size-18"></i></button>
                                 {% elif o.estado == 'f' %}
-                                <button type="button" class="btn btn-link p-0 border-0 text-primary align-baseline btn-imprimir-orden" data-pk="{{ o.pk }}" title="Imprimir oblea DPS"><i class="mdi mdi-printer font-size-18"></i></button>
+                                <button type="button" class="btn btn-link p-0 border-0 text-primary align-baseline btn-imprimir-orden" data-pk="{{ o.pk }}" data-accion="{% if o.matafuegos.categoria == 'd' %}oblea_domiciliaria{% else %}oblea_vehicular{% endif %}" title="Imprimir oblea DPS"><i class="mdi mdi-printer font-size-18"></i></button>
                                 {% elif o.estado == 'i' %}
                                 <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'facturar' %}" class="btn btn-link p-0 border-0 text-primary align-baseline" title="Facturar"><i class="mdi mdi-cash-register font-size-18"></i></button>
                                 {% endif %}
@@ -121,17 +122,21 @@ $(function () {
         language: { search: 'Buscar:', info: 'Mostrando _TOTAL_ órdenes', infoEmpty: 'No hay órdenes cargadas todavía.', zeroRecords: 'No se encontraron órdenes.' },
     });
 
-    // El botón "Imprimir" de una orden Finalizada no envía nada por sí solo:
-    // la oblea real se emite de a pares desde la acción masiva de abajo (ver
-    // OrdenAccionMasivaView), así que este botón solo tilda la fila y lleva
-    // la vista hasta ahí para que el usuario complete el par.
+    // El botón "Imprimir" de una orden Finalizada emite la oblea DPS de esa
+    // única orden: tilda solo su fila (destildando cualquier otra selección
+    // previa) e injecta el `accion` correspondiente a la categoría del
+    // matafuego antes de enviar el form a OrdenAccionMasivaView. Para
+    // imprimir varias obleas juntas se sigue usando la selección manual con
+    // los botones de la acción masiva de abajo.
     $('.btn-imprimir-orden').on('click', function () {
         var pk = $(this).data('pk');
+        var accion = $(this).data('accion');
+        var $form = $(this).closest('form');
+        $('input[name="seleccionadas"]').prop('checked', false);
         $('input[name="seleccionadas"][value="' + pk + '"]').prop('checked', true);
-        var $destino = $('#acciones-masivas-obleas');
-        $('html, body').animate({ scrollTop: $destino.offset().top - 100 }, 300);
-        $destino.addClass('bg-light border border-primary');
-        setTimeout(function () { $destino.removeClass('bg-light border border-primary'); }, 2000);
+        $form.find('input[name="accion"]').remove();
+        $('<input>').attr({ type: 'hidden', name: 'accion', value: accion }).appendTo($form);
+        $form.trigger('submit');
     });
 });
 </script>

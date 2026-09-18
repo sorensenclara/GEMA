@@ -6,9 +6,15 @@ from empresas.models import Company
 
 class CompanyProfileForm(BootstrapFieldsMixin, forms.ModelForm):
     """Edición del perfil de la compañía por su propio Admin de compañía:
-    solo nombre/logo/SMTP. Los rangos de numeración DPS son superadmin-only
-    (ver CompanyRangesForm)."""
+    datos generales, numeración de DPS y SMTP. La activación/desactivación
+    de la compañía (is_active) sigue siendo superadmin-only (ver
+    CompanyRangesForm), para evitar que un admin de empresa se autobloquee."""
 
     class Meta:
         model = Company
-        fields = ['nombre', 'logo', 'smtp_email', 'smtp_password']
+        fields = [
+            'nombre', 'logo', 'numero_recargador',
+            'veh_prefijo', 'veh_inicio', 'veh_fin', 'veh_actual',
+            'dom_prefijo', 'dom_inicio', 'dom_fin', 'dom_actual',
+            'smtp_email', 'smtp_password',
+        ]

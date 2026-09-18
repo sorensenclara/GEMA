@@ -16,4 +16,6 @@ urlpatterns = [
     path('ordenes/<int:pk>/estado/<str:accion>/', views.OrdenCambiarEstadoView.as_view(), name='orden-cambiar-estado'),
     path('ordenes/accion-masiva/', views.OrdenAccionMasivaView.as_view(), name='orden-accion-masiva'),
     path('ordenes/informe-facturacion-ultima-semana/', views.OrdenInformeFacturacionUltimaSemanaView.as_view(), name='orden-informe-facturacion-ultima-semana'),
+    path('ordenes/informe-recargas/', views.OrdenInformeRecargasView.as_view(), name='orden-informe-recargas'),
+    path('ordenes/matafuego/<int:matafuego_id>/informe-historico/', views.MatafuegoInformeHistoricoView.as_view(), name='matafuego-informe-historico'),
 ]

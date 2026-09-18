@@ -145,6 +145,10 @@ menú blanco --- */
 texto de página, la franja queda como acento visual). */
 .page-title-content {
     background-color: #1B4B8D !important;
+    /* .top-navigation (vendor) le mete padding:0 12px a los costados; sin este
+    margen negativo la franja quedaba inset 12px en vez de ocupar el 100% del
+    ancho. */
+    margin: 0 -12px;
 }
 
 /* Menú horizontal: blanco, con el mismo color de texto que usa el botón de
@@ -166,7 +170,12 @@ criterio que el resto de este archivo. */
 .topnav {
     position: relative;
     z-index: 100;
-    border-radius: 3px;
+    border-radius: 8px;
+    /* .topnav-menu (el <nav> hijo) pinta su propio fondo blanco cuadrado por
+    encima; sin overflow:hidden ese fondo tapa las esquinas redondeadas del
+    padre. El box-shadow de este mismo elemento no se recorta (se dibuja
+    fuera de su border-box), así que puede convivir con overflow:hidden. */
+    overflow: hidden;
     margin-bottom: -40px !important;
     box-shadow: 0 -3px 31px 0 rgba(0, 0, 0, .05), 0 6px 20px 0 rgba(0, 0, 0, .02) !important;
 }
@@ -193,9 +202,14 @@ sin necesitar z-index para esto). */
     color: #EC6C05 !important;
 }
 
-/* Botón "Salir": es un <button> dentro de un <form>, se lo estiliza como el
-resto de los nav-link para que quede alineado en la misma fila que Inicio. */
-.topnav .navbar-nav .nav-link.btn {
-    padding: .75rem 1.1rem;
-    font-size: 14px;
+/* --- Bordes redondeados 8px: grillas (cards) --- */
+.card {
+    border-radius: 8px;
+}
+
+/* Botón "Salir" del header, al lado del nombre de usuario. */
+.header-item.text-danger,
+.header-item.text-danger:hover,
+.header-item.text-danger:focus {
+    color: #c62828 !important;
 }

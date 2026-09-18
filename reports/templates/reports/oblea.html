@@ -1,3 +1,4 @@
+{% load l10n %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -27,7 +28,7 @@
     {% for pagina in paginas %}
     <div class="pagina{% if not forloop.last %} con_salto{% endif %}">
         {% for campo in pagina %}
-        <span class="campo" style="left: {{ campo.x }}pt; bottom: {{ campo.y }}pt; font-size: {{ campo.font_size }}pt;">{{ campo.texto }}</span>
+        <span class="campo" style="left: {{ campo.x|unlocalize }}pt; bottom: {{ campo.y|unlocalize }}pt; font-size: {{ campo.font_size|unlocalize }}pt;">{{ campo.texto }}</span>
         {% endfor %}
     </div>
     {% endfor %}

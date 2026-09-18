@@ -1,0 +1,32 @@
+{% extends "reports/_base.html" %}
+{% block subtitulo %}Recargas desde {{ fecha_desde }} hasta {{ fecha_hasta }}{% endblock %}
+{% block content %}
+<table class="tabla-informe">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>N° Matafuego</th>
+            <th>N° DPS</th>
+            <th>Volumen</th>
+            <th>Tipo</th>
+            <th>Marca</th>
+            <th>Cliente</th>
+            <th>Tarea</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for f in filas %}
+        <tr>
+            <td>{{ f.fecha_cierre|date:"d/m/Y" }}</td>
+            <td>{{ f.matafuego.numero }}</td>
+            <td>{{ f.matafuego.numero_dps|default:"-" }}</td>
+            <td>{{ f.matafuego.tipo.volumen|default:"-" }}</td>
+            <td>{{ f.matafuego.tipo.tipo }}</td>
+            <td>{{ f.matafuego.marca }}</td>
+            <td>{{ f.cliente.nombre }}</td>
+            <td>{{ f.tarea|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

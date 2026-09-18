@@ -10,7 +10,7 @@ class CompanyCreateForm(forms.ModelForm):
     class Meta:
         model = Company
         fields = [
-            'nombre', 'logo',
+            'nombre', 'logo', 'numero_recargador',
             'veh_prefijo', 'veh_inicio', 'veh_fin', 'veh_actual',
             'dom_prefijo', 'dom_inicio', 'dom_fin', 'dom_actual',
         ]
@@ -20,7 +20,7 @@ class CompanyRangesForm(forms.ModelForm):
     class Meta:
         model = Company
         fields = [
-            'nombre', 'is_active',
+            'nombre', 'is_active', 'numero_recargador',
             'veh_prefijo', 'veh_inicio', 'veh_fin', 'veh_actual',
             'dom_prefijo', 'dom_inicio', 'dom_fin', 'dom_actual',
         ]

@@ -1,0 +1,33 @@
+{% extends "core/base.html" %}
+{% block title %}Informe de recargas - GEMA{% endblock %}
+
+{% block page_title %}
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <h4 class="mb-0">Informe de recargas</h4>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:480px;">
+    <div class="card-body">
+        <p class="card-title-desc">Indicá el rango de fechas de cierre de la orden (fecha de emisión de la oblea DPS).</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label" for="desde">Fecha desde</label>
+                <input type="date" class="form-control" id="desde" name="desde" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="hasta">Fecha hasta</label>
+                <input type="date" class="form-control" id="hasta" name="hasta" required>
+            </div>
+            <button class="btn btn-primary waves-effect waves-light" type="submit">Generar informe</button>
+            <a href="{% url 'orden_trabajo:orden-list' %}" class="btn btn-secondary waves-effect">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

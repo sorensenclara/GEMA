@@ -7,7 +7,7 @@ from cliente.tests.factories import ClienteFactory
 from empresas.tests.factories import CompanyFactory
 from matafuegos.tests.factories import MatafuegosFactory
 from orden_trabajo.models import Ordenes_de_trabajo, TareaOrden
-from orden_trabajo.tests.factories import OrdenesDeTrabajoFactory, TareaFactory
+from orden_trabajo.tests.factories import OrdenesDeTrabajoFactory, TareaFactory, TareaOrdenFactory
 
 User = get_user_model()
 
@@ -80,6 +80,89 @@ class OrdenCambiarEstadoViewTests(TestCase):
         orden = OrdenesDeTrabajoFactory(estado='p')
 
         response = self.client.post(reverse('orden_trabajo:orden-cambiar-estado', args=[orden.pk, 'iniciar']))
+
+        self.assertEqual(response.status_code, 404)
+
+
+class OrdenInformeRecargasViewTests(TestCase):
+    def setUp(self):
+        self.company = CompanyFactory()
+        self.user = User.objects.create_user(
+            username='operador', password='testpass123',
+            company=self.company, role=Role.OPERADOR,
+        )
+        self.client.force_login(self.user)
+
+    def test_get_renders_form(self):
+        response = self.client.get(reverse('orden_trabajo:orden-informe-recargas'))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_post_sin_fechas_muestra_error(self):
+        response = self.client.post(reverse('orden_trabajo:orden-informe-recargas'), {})
+
+        self.assertRedirects(response, reverse('orden_trabajo:orden-informe-recargas'))
+
+    def test_post_sin_recargas_en_el_rango_muestra_error(self):
+        response = self.client.post(reverse('orden_trabajo:orden-informe-recargas'), {
+            'desde': '2024-01-01', 'hasta': '2024-01-31',
+        })
+
+        self.assertRedirects(response, reverse('orden_trabajo:orden-informe-recargas'))
+
+    def test_post_con_recargas_devuelve_pdf(self):
+        orden = OrdenesDeTrabajoFactory(
+            matafuegos__cliente__company=self.company, estado='i', fecha_cierre='2024-01-15',
+        )
+        TareaOrdenFactory(orden=orden, tarea=TareaFactory(company=self.company, es_recarga=True, nombre='Recarga'))
+
+        response = self.client.post(reverse('orden_trabajo:orden-informe-recargas'), {
+            'desde': '2024-01-01', 'hasta': '2024-01-31',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+
+    def test_no_incluye_recargas_de_otra_compania(self):
+        orden = OrdenesDeTrabajoFactory(estado='i', fecha_cierre='2024-01-15')
+        TareaOrdenFactory(orden=orden, tarea=TareaFactory(company=orden.company, es_recarga=True, nombre='Recarga'))
+
+        response = self.client.post(reverse('orden_trabajo:orden-informe-recargas'), {
+            'desde': '2024-01-01', 'hasta': '2024-01-31',
+        })
+
+        self.assertRedirects(response, reverse('orden_trabajo:orden-informe-recargas'))
+
+
+class MatafuegoInformeHistoricoViewTests(TestCase):
+    def setUp(self):
+        self.company = CompanyFactory()
+        self.user = User.objects.create_user(
+            username='operador', password='testpass123',
+            company=self.company, role=Role.OPERADOR,
+        )
+        self.client.force_login(self.user)
+
+    def test_devuelve_pdf_con_historial(self):
+        orden = OrdenesDeTrabajoFactory(matafuegos__cliente__company=self.company, estado='i', fecha_cierre='2024-01-15')
+        TareaOrdenFactory(orden=orden, tarea=TareaFactory(company=self.company, es_recarga=True, nombre='Recarga'))
+
+        response = self.client.get(reverse('orden_trabajo:matafuego-informe-historico', args=[orden.matafuegos.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+
+    def test_sin_ordenes_cerradas_redirige_con_error(self):
+        matafuego = MatafuegosFactory(cliente__company=self.company)
+
+        response = self.client.get(reverse('orden_trabajo:matafuego-informe-historico', args=[matafuego.pk]))
+
+        self.assertRedirects(response, reverse('matafuegos:list'))
+
+    def test_no_accede_a_matafuego_de_otra_compania(self):
+        matafuego = MatafuegosFactory()
+
+        response = self.client.get(reverse('orden_trabajo:matafuego-informe-historico', args=[matafuego.pk]))
 
         self.assertEqual(response.status_code, 404)
 

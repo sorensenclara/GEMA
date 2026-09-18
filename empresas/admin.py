@@ -9,7 +9,7 @@ class CompanyAdmin(admin.ModelAdmin):
     list_filter = ('is_active',)
     search_fields = ('nombre',)
     fieldsets = (
-        (None, {'fields': ('nombre', 'logo', 'is_active')}),
+        (None, {'fields': ('nombre', 'logo', 'is_active', 'numero_recargador')}),
         ('Numeración DPS', {
             'fields': (
                 ('veh_prefijo', 'veh_inicio', 'veh_fin', 'veh_actual'),

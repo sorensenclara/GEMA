@@ -2,18 +2,21 @@ from io import BytesIO
 
 from django.contrib import messages
 from django.http import FileResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
 from accounts.mixins import OperacionRequiredMixin
 from core.exceptions import DomainException
+from matafuegos.models import Matafuegos
 from orden_trabajo.models import Ordenes_de_trabajo
-from orden_trabajo.selectors import list_ordenes_ultima_semana
+from orden_trabajo.selectors import list_ordenes_recargadas_entre, list_ordenes_ultima_semana
 from orden_trabajo.services import (
     cancelar_orden,
     emitir_informe_facturacion,
     emitir_informe_facturacion_ultima_semana,
+    emitir_informe_historico_matafuego,
     emitir_informe_orden,
+    emitir_informe_recargas,
     emitir_oblea_domiciliaria,
     emitir_oblea_vehicular,
     facturar_orden,
@@ -28,6 +31,21 @@ class OrdenInformeView(OperacionRequiredMixin, View):
         pdf_bytes = emitir_informe_orden(orden)
         messages.success(request, 'Informe emitido')
         return FileResponse(BytesIO(pdf_bytes), as_attachment=True, filename='informe de orden.pdf')
+
+
+class MatafuegoInformeHistoricoView(OperacionRequiredMixin, View):
+    """Historial de tareas realizadas sobre un matafuego a lo largo de todas
+    sus ordenes de trabajo cerradas (ver emitir_informe_historico_matafuego)."""
+
+    def get(self, request, matafuego_id):
+        matafuego = get_object_or_404(Matafuegos, pk=matafuego_id, company=request.user.company)
+        try:
+            pdf_bytes = emitir_informe_historico_matafuego(matafuego)
+        except DomainException as exc:
+            messages.error(request, str(exc))
+            return redirect('matafuegos:list')
+        messages.success(request, 'Informe emitido')
+        return FileResponse(BytesIO(pdf_bytes), as_attachment=True, filename=f'informe_historico_matafuego_{matafuego.numero}.pdf')
 
 
 class OrdenAccionMasivaView(OperacionRequiredMixin, View):
@@ -103,3 +121,26 @@ class OrdenInformeFacturacionUltimaSemanaView(OperacionRequiredMixin, View):
             return redirect('orden_trabajo:orden-list')
         messages.success(request, 'Informe emitido')
         return FileResponse(BytesIO(pdf_bytes), as_attachment=True, filename='informe_facturacion.pdf')
+
+
+class OrdenInformeRecargasView(OperacionRequiredMixin, View):
+    """Listado de matafuegos recargados (oblea DPS emitida) entre dos fechas
+    de cierre de orden, elegidas por el usuario."""
+
+    def get(self, request):
+        return render(request, 'orden_trabajo/orden_informe_recargas.html')
+
+    def post(self, request):
+        desde = request.POST.get('desde')
+        hasta = request.POST.get('hasta')
+        if not desde or not hasta:
+            messages.error(request, 'Especificar fecha desde y hasta.')
+            return redirect('orden_trabajo:orden-informe-recargas')
+        qs = list_ordenes_recargadas_entre(request.user.company, desde, hasta)
+        try:
+            pdf_bytes = emitir_informe_recargas(qs, desde, hasta)
+        except DomainException as exc:
+            messages.error(request, str(exc))
+            return redirect('orden_trabajo:orden-informe-recargas')
+        messages.success(request, 'Informe emitido')
+        return FileResponse(BytesIO(pdf_bytes), as_attachment=True, filename='informe_recargas.pdf')

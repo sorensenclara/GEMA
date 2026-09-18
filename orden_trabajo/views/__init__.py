@@ -1,7 +1,9 @@
 from .orden_acciones import (
+    MatafuegoInformeHistoricoView,
     OrdenAccionMasivaView,
     OrdenCambiarEstadoView,
     OrdenInformeFacturacionUltimaSemanaView,
+    OrdenInformeRecargasView,
     OrdenInformeView,
 )
 from .orden_edit import OrdenCreateView, OrdenFormMixin, OrdenUpdateView
@@ -20,4 +22,6 @@ __all__ = [
     'OrdenAccionMasivaView',
     'OrdenCambiarEstadoView',
     'OrdenInformeFacturacionUltimaSemanaView',
+    'OrdenInformeRecargasView',
+    'MatafuegoInformeHistoricoView',
 ]

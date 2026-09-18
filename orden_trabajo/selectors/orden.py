@@ -24,6 +24,16 @@ def list_ordenes_ultima_semana(company):
     ).order_by('cliente')
 
 
+def list_ordenes_recargadas_entre(company, fecha_desde, fecha_hasta):
+    """Órdenes con oblea DPS ya emitida (estado 'i' o, si ya se facturaron,
+    'fac') cerradas entre las fechas indicadas -- la fecha de cierre es la
+    misma que se usa como fecha de emisión de la oblea (ver
+    orden_trabajo/services/oblea.py)."""
+    return Ordenes_de_trabajo.objects.filter(
+        company=company, estado__in=('i', 'fac'), fecha_cierre__range=(fecha_desde, fecha_hasta),
+    ).select_related('cliente', 'matafuegos', 'matafuegos__tipo', 'matafuegos__marca').order_by('fecha_cierre', 'cliente__nombre')
+
+
 def count_ordenes_pendientes(company):
     return Ordenes_de_trabajo.objects.filter(company=company, estado='p').count()
 

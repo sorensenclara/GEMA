@@ -4,7 +4,12 @@ from django.test import TestCase
 from freezegun import freeze_time
 
 from empresas.tests.factories import CompanyFactory
-from orden_trabajo.selectors import count_ordenes_pendientes, list_ordenes, list_ordenes_ultima_semana
+from orden_trabajo.selectors import (
+    count_ordenes_pendientes,
+    list_ordenes,
+    list_ordenes_recargadas_entre,
+    list_ordenes_ultima_semana,
+)
 from orden_trabajo.tests.factories import OrdenesDeTrabajoFactory
 
 
@@ -62,3 +67,45 @@ class ListOrdenesUltimaSemanaTests(TestCase):
         )
 
         self.assertEqual(list(list_ordenes_ultima_semana(company)), [dentro])
+
+
+class ListOrdenesRecargadasEntreTests(TestCase):
+    def test_only_returns_ordenes_of_company(self):
+        company = CompanyFactory()
+        mia = OrdenesDeTrabajoFactory(
+            matafuegos__cliente__company=company, estado='i', fecha_cierre=date(2024, 1, 10),
+        )
+        OrdenesDeTrabajoFactory(estado='i', fecha_cierre=date(2024, 1, 10))
+
+        resultado = list_ordenes_recargadas_entre(company, '2024-01-01', '2024-01-31')
+
+        self.assertEqual(list(resultado), [mia])
+
+    def test_includes_impresas_and_facturadas_excludes_others(self):
+        company = CompanyFactory()
+        impresa = OrdenesDeTrabajoFactory(
+            matafuegos__cliente__company=company, estado='i', fecha_cierre=date(2024, 1, 10),
+        )
+        facturada = OrdenesDeTrabajoFactory(
+            matafuegos__cliente__company=company, estado='fac', fecha_cierre=date(2024, 1, 11),
+        )
+        OrdenesDeTrabajoFactory(
+            matafuegos__cliente__company=company, estado='f', fecha_cierre=date(2024, 1, 12),
+        )
+
+        resultado = list_ordenes_recargadas_entre(company, '2024-01-01', '2024-01-31')
+
+        self.assertEqual(set(resultado), {impresa, facturada})
+
+    def test_excludes_ordenes_closed_outside_range(self):
+        company = CompanyFactory()
+        dentro = OrdenesDeTrabajoFactory(
+            matafuegos__cliente__company=company, estado='i', fecha_cierre=date(2024, 1, 15),
+        )
+        OrdenesDeTrabajoFactory(
+            matafuegos__cliente__company=company, estado='i', fecha_cierre=date(2024, 2, 1),
+        )
+
+        resultado = list_ordenes_recargadas_entre(company, '2024-01-01', '2024-01-31')
+
+        self.assertEqual(list(resultado), [dentro])

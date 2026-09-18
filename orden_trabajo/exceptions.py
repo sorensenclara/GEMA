@@ -1,11 +1,6 @@
 from core.exceptions import DomainException
 
 
-class CantidadOrdenesImparException(DomainException):
-    """La oblea DPS se emite de a pares de órdenes; la cantidad seleccionada
-    no es múltiplo de dos."""
-
-
 class CategoriaOrdenInvalidaException(DomainException):
     """La categoría del matafuego de la orden no corresponde a la oblea
     solicitada (vehicular/domiciliaria)."""
@@ -35,3 +30,17 @@ class SinOrdenesParaFacturarException(DomainException):
 class TransicionDeEstadoInvalidaException(DomainException):
     """La orden no está en un estado desde el que se pueda aplicar la acción
     pedida (ej. finalizar una orden que no está en proceso)."""
+
+
+class RangoDeFechasInvalidoException(DomainException):
+    """La fecha de fin del rango es anterior a la de inicio."""
+
+
+class SinRecargasParaInformeException(DomainException):
+    """No hay matafuegos recargados (con oblea DPS emitida) entre las fechas
+    indicadas."""
+
+
+class SinHistorialParaInformeException(DomainException):
+    """El matafuego no tiene ordenes de trabajo cerradas para incluir en el
+    informe historico."""

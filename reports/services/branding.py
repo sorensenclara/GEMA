@@ -18,6 +18,7 @@ GEMA_CYAN = "#4AC5F3"
 GEMA_ORANGE = "#EC6C05"
 
 DEFAULT_COMPANY_NAME = "GEMA"
+DEFAULT_NUMERO_RECARGADOR = "120"
 # reports/assets/, no reports/services/assets/ -- un nivel arriba del propio
 # archivo (reports/services/branding.py).
 DEFAULT_LOGO_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "gema-logo.png")
@@ -28,6 +29,13 @@ def resolve_company_name(obj):
     if company and getattr(company, "nombre", None):
         return company.nombre
     return DEFAULT_COMPANY_NAME
+
+
+def resolve_numero_recargador(obj):
+    company = resolve_company(obj)
+    if company and getattr(company, "numero_recargador", None):
+        return company.numero_recargador
+    return DEFAULT_NUMERO_RECARGADOR
 
 
 def resolve_logo_path(obj):

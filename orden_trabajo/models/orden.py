@@ -25,6 +25,10 @@ class Ordenes_de_trabajo(AuditModel):
     cliente = models.ForeignKey(Cliente, verbose_name='Cliente', on_delete=models.CASCADE, related_name='ordenes_de_trabajo')
     matafuegos = models.ForeignKey(Matafuegos, verbose_name='Matafuegos', on_delete=models.CASCADE, related_name='ordenes_de_trabajo')
     estado = models.CharField('Estado', max_length=80, choices=ESTADOS, default='ep')
+    numero_dps = models.CharField(
+        'Numero de DPS', max_length=50, blank=True, null=True,
+        help_text='Numero de DPS asignado al emitir la oblea, si la orden incluyo una tarea de recarga.',
+    )
     monto_total = models.FloatField('Monto', default=0)
     notas = models.CharField('Notas', max_length=80, blank=True)
     usuario = models.CharField('Usuario responsable', max_length=30, default='')

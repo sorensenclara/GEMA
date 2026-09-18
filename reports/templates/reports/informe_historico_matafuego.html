@@ -1,0 +1,28 @@
+{% extends "reports/_base.html" %}
+{% block subtitulo %}Matafuego N° {{ matafuego.numero }} · {{ cliente.nombre }}{% endblock %}
+{% block content %}
+<div class="datos-bloque">
+    <strong>Cliente:</strong> {{ cliente.nombre }}<br>
+    <strong>N° de matafuego:</strong> {{ matafuego.numero }}
+</div>
+<table class="tabla-informe">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>N° Orden</th>
+            <th>Tarea realizada</th>
+            <th>N° DPS</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for f in filas %}
+        <tr>
+            <td>{{ f.fecha_cierre|date:"d/m/Y" }}</td>
+            <td>{{ f.orden_id }}</td>
+            <td>{{ f.tarea }}</td>
+            <td>{{ f.numero_dps|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -80,6 +80,7 @@
                             {% endif %}
                         </td>
                         <td>
+                            <a href="{% url 'orden_trabajo:matafuego-informe-historico' m.pk %}" class="text-primary" title="Informe histórico"><i class="mdi mdi-file-clock font-size-18"></i></a>
                             <a href="{% url 'matafuegos:update' m.pk %}" class="text-primary" title="Editar"><i class="mdi mdi-pencil font-size-18"></i></a>
                             {% if m.estado == 'a' %}
                             <form method="post" action="{% url 'matafuegos:eliminar' m.pk %}" style="display:inline">

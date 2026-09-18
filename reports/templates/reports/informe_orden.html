@@ -6,7 +6,8 @@
     <strong>Fecha cierre de orden:</strong> {{ orden.fecha_cierre|date:"d/m/Y"|default:"-" }}<br>
     <strong>Cliente:</strong> {{ orden.cliente }}<br>
     <strong>Matafuego:</strong> {{ orden.matafuegos }}<br>
-    <strong>Estado de la orden:</strong> {{ orden.get_estado_display }}
+    <strong>Estado de la orden:</strong> {{ orden.get_estado_display }}<br>
+    <strong>Notas:</strong> {{ orden.notas|default:"-" }}
 </div>
 <div class="grupo-titulo">Tareas realizadas</div>
 <table class="tabla-informe">
