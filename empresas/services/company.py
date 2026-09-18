@@ -3,11 +3,11 @@ from django.utils.crypto import get_random_string
 
 from accounts.models import Role, User
 from accounts.services import invitar_usuario
-from empresas.exceptions import RangoDpsAgotadoException
+from empresas.exceptions import NumeracionDpsNoConfiguradaException, RangoDpsAgotadoException
 from empresas.models import Company
 
 
-def incrementar_dps(company, serie, paso=2):
+def incrementar_dps(company, serie, paso=1):
     """Asigna atómicamente el próximo número de DPS de la serie ('veh' u 'dom')
     y devuelve el valor ya formateado con su prefijo."""
     assert serie in ('veh', 'dom')
@@ -18,12 +18,18 @@ def incrementar_dps(company, serie, paso=2):
         row = Company.objects.select_for_update().get(pk=company.pk)
         actual = getattr(row, campo_actual)
         fin = getattr(row, campo_fin)
-        if fin and actual + paso > fin:
+        prefijo = getattr(row, campo_prefijo)
+        if not prefijo or not fin:
+            raise NumeracionDpsNoConfiguradaException(
+                f'La numeración DPS "{serie}" de "{row.nombre}" no está configurada: '
+                f'definir prefijo y número final en la ficha de la compañía.'
+            )
+        if actual + paso > fin:
             raise RangoDpsAgotadoException(
                 f'El rango de numeración DPS "{serie}" de "{row.nombre}" está agotado '
                 f'(próximo número {actual + paso} supera el límite configurado {fin}).'
             )
-        valor_impreso = f"{getattr(row, campo_prefijo)}{actual}"
+        valor_impreso = f"{prefijo}{actual}"
         Company.objects.filter(pk=company.pk).update(
             **{campo_actual: models.F(campo_actual) + paso}
         )
