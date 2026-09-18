@@ -5,12 +5,21 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
+from accounts.models import Role, User
 from cliente.models import Cliente
 from empresas.models import Company
 from matafuegos.models import Matafuegos, MarcaMatafuegos, TipoMatafuegos
 from orden_trabajo.models import Ordenes_de_trabajo, Tarea, TareaOrden
 
 COMPANY_ID = 1
+
+ADMIN_USERNAME = 'admin_fenix'
+ADMIN_EMAIL = 'prueba_fenix@geneos.com.ar'
+ADMIN_PASSWORD = 'demo1234'
+
+SUPERUSER_USERNAME = 'admin'
+SUPERUSER_EMAIL = 'admingeneos@geneos.com.ar'
+SUPERUSER_PASSWORD = 'demo1234'
 
 # Tal como aparecen en la lista de tareas de la app. "Carga" es la unica
 # marcada como tarea de recarga (es_recarga=True): habilita la emision de
@@ -69,16 +78,51 @@ class Command(BaseCommand):
         call_command('import_tipos_matafuegos')
 
         with transaction.atomic():
+            superuser = self._crear_superusuario()
+            admin_user = self._crear_usuario_admin(company)
             tareas = self._crear_tareas(company)
             clientes = self._crear_clientes(company)
             matafuegos = self._crear_matafuegos(company, clientes)
             ordenes = self._crear_ordenes(company, matafuegos, tareas)
 
         self.stdout.write(self.style.SUCCESS(
-            f'Listo: {len(tareas)} tareas, {len(clientes)} clientes, '
+            f'Listo: superusuario "{superuser.username}", usuario "{admin_user.username}", '
+            f'{len(tareas)} tareas, {len(clientes)} clientes, '
             f'{len(matafuegos)} matafuegos, {len(ordenes)} ordenes de trabajo '
             f'para "{company.nombre}".'
         ))
+
+    def _crear_superusuario(self):
+        user, created = User.objects.get_or_create(
+            username=SUPERUSER_USERNAME,
+            defaults={'email': SUPERUSER_EMAIL},
+        )
+        user.email = SUPERUSER_EMAIL
+        user.is_staff = True
+        user.is_superuser = True
+        user.is_active = True
+        user.set_password(SUPERUSER_PASSWORD)
+        user.save()
+        return user
+
+    def _crear_usuario_admin(self, company):
+        user, created = User.objects.get_or_create(
+            username=ADMIN_USERNAME,
+            defaults={
+                'email': ADMIN_EMAIL,
+                'company': company,
+                'role': Role.ADMIN_EMPRESA,
+            },
+        )
+        if not created:
+            user.email = ADMIN_EMAIL
+            user.company = company
+            user.role = Role.ADMIN_EMPRESA
+            user.cliente = None
+        user.is_active = True
+        user.set_password(ADMIN_PASSWORD)
+        user.save()
+        return user
 
     def _crear_tareas(self, company):
         tareas = {}

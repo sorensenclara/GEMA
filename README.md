@@ -107,3 +107,11 @@ python manage.py import_tipos_matafuegos
 Clientes, matagueros, tareas y ordenes de trabajo
 Las tareas las crea para la empresa con id 1- Matafuegos fenix
 python manage.py seed_demo_data
+
+Superadmin
+admin
+demo1234
+
+Compañia Fenix
+Usuario: admin_fenix
+demo1234
