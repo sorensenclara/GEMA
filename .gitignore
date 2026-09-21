@@ -142,4 +142,6 @@ _pycache_/
 *$py.class
 
 node_modules
-Makefile
+Makefile.env*
+.DS_Store
+*.ai
