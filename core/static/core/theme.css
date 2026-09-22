@@ -57,6 +57,49 @@ h6 { font-size: 0.9375rem !important; }   /* antes 0.8125rem (13px) */
     font-size: 20px !important; /* antes 16px */
 }
 
+/* --- Íconos propios de GEMA (SVG en core/images/iconos/), reemplazan a los
+mdi genéricos del menú horizontal y del dropdown "Mi compañía". El vendor
+posiciona el ícono de cada nav-link con `.nav-link i{display:block;
+margin-bottom:8px;text-align:center}` (_horizontal-nav.scss) -- esa regla
+apunta al tag <i>, así que no aplica a los <img> nuevos y se repite acá
+apuntando a .nav-icon en su lugar. */
+.topnav .navbar-nav .nav-link img.nav-icon {
+    display: block;
+    width: 22px;
+    height: 22px;
+    margin: 0 auto 8px;
+}
+
+/* Ícono inline del dropdown "Mi compañía" (antes <i class="mdi mdi-domain
+font-size-17 ...">) -- mismo tamaño que tenía el glyph mdi. */
+.icon-inline-17 {
+    width: 17px;
+    height: 17px;
+    vertical-align: middle;
+}
+
+/* --- Íconos GEMA en el dashboard: tarjetas de KPI y botones de accesos
+rápidos (mismos SVG que el navbar, ver core/templates/core/dashboard.html). */
+
+/* Reemplaza al glyph mdi circular blanco de .mini-stat-icon i (vendor,
+app.min.css) -- nuestros SVG ya traen su propio fondo/esquinas redondeadas,
+así que no se repite el círculo, solo el tamaño y el float-end. */
+.mini-stat-icon img.mini-stat-icon-img {
+    display: block;
+    float: right;
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+}
+
+/* Ícono inline en los botones de "Accesos rápidos" (antes <i class="mdi ...
+me-1">, tamaño por defecto del ícono de fuente ~1em). */
+.icon-inline-btn {
+    width: 18px;
+    height: 18px;
+    vertical-align: text-bottom;
+}
+
 /* Íconos de acciones en tablas (editar/eliminar/etc, clase .font-size-18 del
 vendor combinada con .mdi en los listados). Se apunta a .mdi.font-size-18
 puntualmente -- esa utility class sola también se usa en algunos <h4> de las
@@ -213,3 +256,344 @@ sin necesitar z-index para esto). */
 .header-item.text-danger:focus {
     color: #c62828 !important;
 }
+
+/* ============================================================
+   Dashboard rediseñado (core/templates/core/dashboard.html)
+   ============================================================ */
+
+/* Encabezado: saludo + subtítulo a la izquierda, fecha y compañía a la
+derecha. En mobile se apila (flex-wrap ya viene del contenedor en el
+template). */
+.dashboard-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.dashboard-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.date-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: #495057;
+    white-space: nowrap;
+}
+
+/* Tarjetas de KPI: ícono en cuadrado de color + valor + link completo a la
+grilla correspondiente (toda la tarjeta es un <a>, de ahí color:inherit y
+text-decoration:none acá en vez de depender de .card default). */
+.kpi-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px 18px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+    transition: box-shadow .15s ease;
+    height: 100%;
+}
+
+.kpi-card:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .10);
+    color: inherit;
+}
+
+.kpi-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.kpi-icon img {
+    width: 26px;
+    height: 26px;
+}
+
+/* Mismos 4 colores sólidos usados en la leyenda del donut (ver
+ordenes_por_estado_rows en core/views/dashboard.py) + el rojo de peligro ya
+definido como --bs-danger más arriba en este archivo. */
+.kpi-icon-navy { background: #1B4B8D; }
+.kpi-icon-orange { background: #EC6C05; }
+.kpi-icon-teal { background: #1F87B0; }
+.kpi-icon-danger { background: #c62828; }
+
+.kpi-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.kpi-label {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: #6c757d;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.kpi-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.kpi-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #232323;
+}
+
+/* Todavía no calculamos la variación real vs. el mes anterior (ver charla
+con Clara, queda pendiente definir qué significa exactamente "mes anterior"
+antes de escribir esa consulta) -- se muestra un guion neutro en vez de
+inventar un número al lado de un KPI que sí es real. */
+.kpi-trend-muted {
+    font-size: 12px;
+    color: #9aa1a9;
+}
+
+.kpi-chevron {
+    color: #c7ccd1;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+/* Donut "Órdenes de trabajo por estado": Morris.js dibuja el SVG dentro de
+#morris-donut-ordenes; el total centrado es una capa nuestra superpuesta
+(Morris no trae esa opción), por eso .donut-wrap es el positioning context
+y .donut-center se ancla con inset:0 encima del SVG. */
+.donut-wrap {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    flex-shrink: 0;
+}
+
+#morris-donut-ordenes {
+    width: 180px;
+    height: 180px;
+}
+
+/* Morris.js dibuja su propia etiqueta central dentro del SVG (cambia según
+qué porción tuvo el mouse encima la última vez, no siempre dice "Total") --
+en vez de pelear con su formatter, .donut-center tapa el agujero del donut
+con un círculo blanco opaco y encima escribimos el total real nosotros. */
+.donut-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 108px;
+    height: 108px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    text-align: center;
+}
+
+.donut-center-label {
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.donut-center-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #232323;
+    line-height: 1.2;
+}
+
+.donut-legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.donut-legend li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 14px;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.legend-label {
+    flex: 1;
+}
+
+.legend-value {
+    font-weight: 600;
+    width: 26px;
+    text-align: right;
+}
+
+.legend-pct {
+    color: #6c757d;
+    width: 42px;
+    text-align: right;
+    font-size: 13px;
+}
+
+/* Link "Ver todos"/"Ver todas" en los headers de card. */
+.card-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: #EC6C05;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.card-link:hover {
+    color: #c65a03;
+    text-decoration: underline;
+}
+
+/* "Requieren atención" y "Actividad reciente" todavía no tienen una
+consulta real atrás (ver charla con Clara) -- esta etiqueta dice
+explícitamente que el contenido es de ejemplo, para que nadie los lea como
+alertas reales del sistema mientras tanto. Sacar en cuanto se conecten a
+datos reales. */
+.preview-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: #8a6d1d;
+    background: #fff6db;
+    border: 1px solid #f0dfa0;
+    border-radius: 12px;
+    padding: 3px 10px;
+    margin: 6px 0 10px;
+}
+
+/* Variante inline de .preview-badge para una sola fila de una lista (por
+ejemplo "Tareas demoradas" en el panel Requieren atención, mientras no
+tenga una consulta real atrás) en vez del bloque completo. */
+.preview-badge-inline {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: #8a6d1d;
+    background: #fff6db;
+    border: 1px solid #f0dfa0;
+    border-radius: 10px;
+    padding: 1px 7px;
+    vertical-align: middle;
+}
+
+.attention-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.attention-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.attention-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 17px;
+    color: #fff;
+}
+
+.attention-icon-danger { background: #c62828; }
+.attention-icon-orange { background: #EC6C05; }
+.attention-icon-navy { background: #1B4B8D; }
+.attention-icon-muted { background: #8a8f98; }
+
+.attention-count {
+    font-weight: 700;
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.attention-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+}
+
+.attention-text small {
+    font-size: 12px;
+}
+
+.attention-list .mdi-chevron-right {
+    color: #c7ccd1;
+    flex-shrink: 0;
+}
+
+/* Pills de la columna "Tipo" en la tabla de actividad reciente. */
+.badge-activity {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 3px 10px;
+    white-space: nowrap;
+}
+
+.badge-activity-success { background: #e3f8e9; color: #1c6b34; }
+.badge-activity-info { background: #e7f1fd; color: #1d5fa8; }
+.badge-activity-warning { background: #fdeee0; color: #b0530a; }
+.badge-activity-purple { background: #f1e7fb; color: #6a3fb5; }
+.badge-activity-peach { background: #fdf1e2; color: #b0791a; }

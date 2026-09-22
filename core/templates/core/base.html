@@ -38,7 +38,7 @@
                             </button>
                             {% if user.is_company_admin %}
                             <div class="dropdown-menu dropdown-menu-end">
-                                <a class="dropdown-item" href="{% url 'empresas:company-profile' %}"><i class="mdi mdi-domain font-size-17 text-muted align-middle me-1"></i> Mi compañía</a>
+                                <a class="dropdown-item" href="{% url 'empresas:company-profile' %}"><img src="{% static 'core/images/iconos/compañia.svg' %}" alt="" class="icon-inline-17 me-1"> Mi compañía</a>
                             </div>
                             {% endif %}
                         </div>
@@ -63,29 +63,29 @@
                                 <ul class="navbar-nav">
                                     <li class="nav-item">
                                         <a class="nav-link{% if active_section == 'dashboard' %} active{% endif %}" href="{% url 'dashboard' %}">
-                                            <i class="mdi mdi-view-dashboard"></i>Inicio
+                                            <img src="{% static 'core/images/iconos/inicio.svg' %}" alt="" class="nav-icon">Inicio
                                         </a>
                                     </li>
 
                                     {% if user.is_company_admin or user.is_operador %}
                                     <li class="nav-item">
                                         <a class="nav-link{% if active_section == 'clientes' %} active{% endif %}" href="{% url 'cliente:list' %}">
-                                            <i class="mdi mdi-account-multiple"></i>Clientes
+                                            <img src="{% static 'core/images/iconos/clientes.svg' %}" alt="" class="nav-icon">Clientes
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link{% if active_section == 'matafuegos' %} active{% endif %}" href="{% url 'matafuegos:list' %}">
-                                            <i class="mdi mdi-fire"></i>Matafuegos
+                                            <img src="{% static 'core/images/iconos/matafuego.svg' %}" alt="" class="nav-icon">Matafuegos
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link{% if active_section == 'ordenes' %} active{% endif %}" href="{% url 'orden_trabajo:orden-list' %}">
-                                            <i class="mdi mdi-clipboard-text-outline"></i>Órdenes de trabajo
+                                            <img src="{% static 'core/images/iconos/ordenes de trabajo.svg' %}" alt="" class="nav-icon">Órdenes de trabajo
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link{% if active_section == 'tareas' %} active{% endif %}" href="{% url 'orden_trabajo:tarea-list' %}">
-                                            <i class="mdi mdi-format-list-checks"></i>Tareas
+                                            <img src="{% static 'core/images/iconos/tarea.svg' %}" alt="" class="nav-icon">Tareas
                                         </a>
                                     </li>
                                     {% endif %}
@@ -93,12 +93,12 @@
                                     {% if user.is_company_admin %}
                                     <li class="nav-item">
                                         <a class="nav-link{% if active_section == 'usuarios' %} active{% endif %}" href="{% url 'accounts:user-list' %}">
-                                            <i class="mdi mdi-account-cog-outline"></i>Usuarios
+                                            <img src="{% static 'core/images/iconos/usuarios.svg' %}" alt="" class="nav-icon">Usuarios
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link{% if active_section == 'empresa' %} active{% endif %}" href="{% url 'empresas:company-profile' %}">
-                                            <i class="mdi mdi-domain"></i>Mi compañía
+                                            <img src="{% static 'core/images/iconos/compañia.svg' %}" alt="" class="nav-icon">Mi compañía
                                         </a>
                                     </li>
                                     {% endif %}
@@ -106,7 +106,7 @@
                                     {% if user.is_cliente_final %}
                                     <li class="nav-item">
                                         <a class="nav-link{% if active_section == 'mis-matafuegos' %} active{% endif %}" href="{% url 'matafuegos:mis-matafuegos' %}">
-                                            <i class="mdi mdi-fire"></i>Mis matafuegos
+                                            <img src="{% static 'core/images/iconos/matafuego.svg' %}" alt="" class="nav-icon">Mis matafuegos
                                         </a>
                                     </li>
                                     {% endif %}

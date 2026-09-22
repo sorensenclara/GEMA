@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from core.models import AuditModel
+from core.utils import TelefonoInvalidoException, normalizar_telefono_ar
 
 ESTADOS = [
     ('a', 'Activo'),
@@ -54,4 +55,9 @@ class Cliente(AuditModel):
         cleaned_data = super().clean()
         if not self.validar_cuit(self.cuit_cuil):
             raise ValidationError('El cuit_cuil del cliente es invalido')
+        if self.telefono:
+            try:
+                self.telefono = normalizar_telefono_ar(self.telefono)
+            except TelefonoInvalidoException as exc:
+                raise ValidationError({'telefono': str(exc)})
         return cleaned_data

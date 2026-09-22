@@ -65,3 +65,31 @@ class ClienteCuitValidationTests(TestCase):
         cliente = Cliente()
         # CUIT construido con el dígito verificador correcto para esta base.
         self.assertTrue(cliente.validar_cuit('20111111112'))
+
+
+class ClienteTelefonoNormalizationTests(TestCase):
+    """clean() deja el telefono siempre listo para WhatsApp (ver charla con
+    Clara, 2026-09-22) -- la normalizacion en si se prueba a fondo en
+    core/tests/unit/test_utils_telefono.py, aca solo se prueba que el
+    modelo la aplique y falle prolijo cuando no se puede."""
+
+    def test_clean_normaliza_el_telefono(self):
+        cliente = Cliente(codigo='1', nombre='Big', tipo='p', estado='i', telefono='011 15 4500-1000')
+        cliente.clean()
+        self.assertEqual(cliente.telefono, '5491145001000')
+
+    def test_clean_es_idempotente(self):
+        cliente = Cliente(codigo='1', nombre='Big', tipo='p', estado='i', telefono='5491145001000')
+        cliente.clean()
+        self.assertEqual(cliente.telefono, '5491145001000')
+
+    def test_clean_acepta_telefono_vacio(self):
+        cliente = Cliente(codigo='1', nombre='Big', tipo='p', estado='i', telefono=None)
+        cliente.clean()  # no debe lanzar
+        self.assertIsNone(cliente.telefono)
+
+    def test_clean_raises_for_invalid_telefono(self):
+        cliente = Cliente(codigo='1', nombre='Big', tipo='p', estado='i', telefono='sin telefono')
+        with self.assertRaises(ValidationError) as ctx:
+            cliente.clean()
+        self.assertIn('telefono', ctx.exception.message_dict)
