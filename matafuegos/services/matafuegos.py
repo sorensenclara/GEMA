@@ -1,3 +1,5 @@
+import csv
+import io
 from datetime import date
 from itertools import groupby
 
@@ -6,8 +8,53 @@ from matafuegos.exceptions import (
     SinMatafuegosParaAlertaException,
     SinMatafuegosParaInformeException,
 )
-from matafuegos.models import Matafuegos
+from matafuegos.models import Matafuegos, NotificacionVencimiento
 from reports.services import render_report_pdf, report_header_context
+
+
+_ESTADO_VENCIMIENTO_DISPLAY = {
+    'al_dia': 'Al día',
+    'proximo': 'Próximo a vencer',
+    'vencido': 'Vencido',
+}
+
+_ESTADO_NOTIFICACION_DISPLAY = {
+    None: 'Sin notificar',
+    NotificacionVencimiento.ESTADO_PENDIENTE: 'Pendiente de confirmación',
+    NotificacionVencimiento.ESTADO_NOTIFICADA: 'Notificado',
+    NotificacionVencimiento.ESTADO_ERROR: 'Error',
+}
+
+
+def exportar_panel_vencimientos_csv(filas):
+    """CSV de las filas del panel de Vencimientos (las que están filtradas
+    y buscadas en pantalla en ese momento, sin recortar por paginación --
+    la exportación siempre trae el conjunto completo que se está mirando).
+    Se genera con el módulo csv de la biblioteca estándar, sin depender de
+    ningún paquete nuevo; el archivo abre bien en Excel/Sheets."""
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, delimiter=';')
+    writer.writerow([
+        'Cliente', 'Código cliente', 'Matafuego N°', 'Tipo', 'Tipo de vencimiento',
+        'Fecha de vencimiento', 'Estado de vencimiento', 'Estado de notificación',
+        'Teléfono', 'Último aviso',
+    ])
+    for fila in filas:
+        matafuego = fila['matafuego']
+        notificacion = fila['notificacion']
+        writer.writerow([
+            matafuego.cliente.nombre,
+            matafuego.cliente.codigo,
+            matafuego.numero,
+            str(matafuego.tipo),
+            dict(NotificacionVencimiento.TIPOS_VENCIMIENTO).get(fila['tipo_vencimiento'], fila['tipo_vencimiento']),
+            fila['fecha_vencimiento'].strftime('%d/%m/%Y'),
+            _ESTADO_VENCIMIENTO_DISPLAY.get(fila['estado_vencimiento'], ''),
+            _ESTADO_NOTIFICACION_DISPLAY.get(fila['estado_notificacion'], ''),
+            matafuego.cliente.telefono or '',
+            notificacion.updated_at.strftime('%d/%m/%Y %H:%M') if notificacion else '',
+        ])
+    return buffer.getvalue().encode('utf-8-sig')  # BOM para que Excel detecte UTF-8
 
 
 def _agrupar_por_cliente(queryset):

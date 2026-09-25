@@ -20,6 +20,13 @@ class ClienteFieldsTests(TestCase):
             'nombre': 'Nombre/ Razón Social',
             'contacto': 'Nombre contacto',
             'direccion': 'Dirección',
+            'localidad': 'Localidad',
+            'provincia': 'Provincia',
+            'codigo_postal': 'Código postal',
+            'pais': 'País',
+            'geo_referencia_externa': 'Referencia externa de ubicación',
+            'geo_provider': 'Proveedor de geocodificación',
+            'geo_status': 'Estado de georreferenciación',
             'telefono': 'Telefono',
             'email': 'Email',
             'web': 'Web',
@@ -32,7 +39,9 @@ class ClienteFieldsTests(TestCase):
 
     def test_field_max_lengths(self):
         max_lengths = {
-            'cuit_cuil': 11, 'nombre': 80, 'contacto': 80, 'direccion': 80,
+            'cuit_cuil': 11, 'nombre': 80, 'contacto': 80, 'direccion': 255,
+            'localidad': 120, 'provincia': 120, 'codigo_postal': 20, 'pais': 80,
+            'geo_referencia_externa': 50, 'geo_provider': 30, 'geo_status': 25,
             'telefono': 80, 'email': 264, 'web': 200, 'tipo': 80, 'estado': 80,
         }
         for field_name, expected_max_length in max_lengths.items():
@@ -93,3 +102,20 @@ class ClienteTelefonoNormalizationTests(TestCase):
         with self.assertRaises(ValidationError) as ctx:
             cliente.clean()
         self.assertIn('telefono', ctx.exception.message_dict)
+
+
+class ClienteGeoStatusChoicesTests(TestCase):
+    """Solo deben existir los 3 estados que se pueden producir en el flujo
+    real (ver charla con Clara, 2026-09-23): no agregar 'pendiente' ni
+    ningún otro que no salga de una carga real de Cliente."""
+
+    def test_choices_son_exactamente_las_tres_acordadas(self):
+        choices = dict(Cliente._meta.get_field('geo_status').choices)
+        self.assertEqual(
+            choices,
+            {
+                'georreferenciado': 'Georreferenciado',
+                'manual_legado': 'Manual (legado)',
+                'manual_no_encontrado': 'Manual (no encontrado)',
+            },
+        )

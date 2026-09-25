@@ -90,9 +90,14 @@
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <h4 class="card-title mb-0">Órdenes de trabajo por estado</h4>
-                    <select class="form-select form-select-sm w-auto" disabled title="Próximamente: filtro por período">
-                        <option>Últimos 30 días</option>
-                    </select>
+                    <form method="get" class="d-inline">
+                        <select name="periodo_ordenes" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                            <option value="" {% if not periodo_ordenes_actual %}selected{% endif %}>Todo</option>
+                            <option value="30" {% if periodo_ordenes_actual == 30 %}selected{% endif %}>Últimos 30 días</option>
+                            <option value="60" {% if periodo_ordenes_actual == 60 %}selected{% endif %}>Últimos 60 días</option>
+                            <option value="90" {% if periodo_ordenes_actual == 90 %}selected{% endif %}>Últimos 90 días</option>
+                        </select>
+                    </form>
                 </div>
                 {% if mostrar_grafico_ordenes %}
                     {{ ordenes_por_estado_labels|json_script:"ordenes-por-estado-labels" }}
@@ -131,31 +136,36 @@
                         <h4 class="card-title mb-1">Requieren atención</h4>
                         <p class="text-muted font-size-13 mb-0">Elementos que necesitan tu revisión.</p>
                     </div>
-                    <a href="#" class="card-link">Ver todos <i class="mdi mdi-arrow-right"></i></a>
+                    <a href="{% url 'matafuegos:panel-vencimientos' %}?filtro=proximos" class="card-link">Ver todos <i class="mdi mdi-arrow-right"></i></a>
                 </div>
                 <ul class="attention-list">
                     <li>
-                        <span class="attention-icon attention-icon-danger"><i class="mdi mdi-calendar-alert"></i></span>
-                        <span class="attention-count">{{ kpi_vencimientos_30d }}</span>
-                        <span class="attention-text">
-                            <strong>Matafuegos vencen en los próximos 30 días</strong>
-                            <small class="text-muted">Requieren recarga o revisión.</small>
-                        </span>
+                        <a class="attention-link" href="{% url 'matafuegos:panel-vencimientos' %}?filtro=proximos">
+                            <span class="attention-icon attention-icon-danger"><i class="mdi mdi-calendar-alert"></i></span>
+                            <span class="attention-count">{{ kpi_vencimientos_30d }}</span>
+                            <span class="attention-text">
+                                <strong>Matafuegos vencen en los próximos 30 días</strong>
+                                <small class="text-muted">Requieren recarga o revisión.</small>
+                            </span>
+                        </a>
                         <i class="mdi mdi-chevron-right"></i>
                     </li>
                     <li>
-                        <span class="attention-icon attention-icon-orange"><i class="mdi mdi-clipboard-text-outline"></i></span>
-                        <span class="attention-count">{{ kpi_ordenes_pendientes }}</span>
-                        <span class="attention-text">
-                            <strong>Órdenes de trabajo pendientes</strong>
-                            <small class="text-muted">Sin inicio o en espera de asignación.</small>
-                        </span>
+                        <a class="attention-link" href="{% url 'orden_trabajo:orden-list' %}?estado=p">
+                            <span class="attention-icon attention-icon-orange"><i class="mdi mdi-clipboard-text-outline"></i></span>
+                            <span class="attention-count">{{ kpi_ordenes_pendientes }}</span>
+                            <span class="attention-text">
+                                <strong>Órdenes de trabajo pendientes</strong>
+                                <small class="text-muted">Sin inicio o en espera de asignación.</small>
+                            </span>
+                        </a>
                         <i class="mdi mdi-chevron-right"></i>
                     </li>
                     <li>
                         {# TODO(Clara): pendiente -- no hay campo que registre si ya se avisó #}
                         {# al cliente de un matafuego por vencer/vencido. Falta decidir si se #}
-                        {# agrega ese campo a Matafuegos o se define otra señal. #}
+                        {# agrega ese campo a Matafuegos o se define otra señal. Por eso esta #}
+                        {# fila (a diferencia de las demás) todavía no tiene link. #}
                         <span class="attention-icon attention-icon-navy"><i class="mdi mdi-format-list-checks"></i></span>
                         <span class="attention-count">2</span>
                         <span class="attention-text">
@@ -165,12 +175,16 @@
                         <i class="mdi mdi-chevron-right"></i>
                     </li>
                     <li>
-                        <span class="attention-icon attention-icon-muted"><i class="mdi mdi-account-multiple"></i></span>
-                        <span class="attention-count">{{ kpi_clientes_sin_actividad }}</span>
-                        <span class="attention-text">
-                            <strong>Clientes sin actividad reciente</strong>
-                            <small class="text-muted">Matafuego vencido, sin orden de trabajo en los últimos 90 días.</small>
-                        </span>
+                        {# Sin filtro dedicado todavía -- lleva al listado general de #}
+                        {# clientes (no hay una vista que filtre por "sin actividad"). #}
+                        <a class="attention-link" href="{% url 'cliente:list' %}">
+                            <span class="attention-icon attention-icon-muted"><i class="mdi mdi-account-multiple"></i></span>
+                            <span class="attention-count">{{ kpi_clientes_sin_actividad }}</span>
+                            <span class="attention-text">
+                                <strong>Clientes sin actividad reciente</strong>
+                                <small class="text-muted">Matafuego vencido, sin orden de trabajo en los últimos 90 días.</small>
+                            </span>
+                        </a>
                         <i class="mdi mdi-chevron-right"></i>
                     </li>
                 </ul>
@@ -186,14 +200,16 @@
                 <div class="d-flex align-items-start justify-content-between">
                     <div>
                         <h4 class="card-title mb-1">Actividad reciente</h4>
-                        <p class="text-muted font-size-13 mb-0">Últimas acciones registradas en el sistema.</p>
+                        <p class="text-muted font-size-13 mb-0">Últimas {{ actividad_reciente|length }} acciones registradas en el sistema.</p>
                     </div>
-                    <a href="#" class="card-link">Ver todas <i class="mdi mdi-arrow-right"></i></a>
                 </div>
-                {# TODO(Clara): placeholder -- se puede armar con django-simple-history #}
-                {# (HistoricalRecords ya está en AuditModel) uniendo el historial de #}
-                {# Cliente/Matafuego/Orden/Tarea por fecha, a definir con más calma. #}
-                <span class="preview-badge d-inline-block">Vista previa · datos de ejemplo</span>
+                {# Se arma con el historial de django-simple-history de Cliente/ #}
+                {# Matafuego/Orden de trabajo/Tarea (ver core/selectors/activity.py). #}
+                {# Simplificación consciente: no describe el cambio de negocio puntual #}
+                {# (ej. "orden finalizada"), solo creado/actualizado/eliminado + la #}
+                {# descripción del objeto en ese momento. Sin "Ver todas" todavía -- #}
+                {# no hay una vista de actividad más completa que esta tabla. #}
+                {% if actividad_reciente %}
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead>
@@ -201,55 +217,32 @@
                                 <th>Fecha</th>
                                 <th>Tipo</th>
                                 <th>Descripción</th>
-                                <th>Cliente / área</th>
                                 <th>Usuario</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
+                            {% for fila in actividad_reciente %}
                             <tr>
-                                <td>21/09/2026 09:45</td>
-                                <td><span class="badge-activity badge-activity-success">Orden finalizada</span></td>
-                                <td>OT #0024 - Recarga matafuego 5 kg</td>
-                                <td>Distribuidora del Sur</td>
-                                <td>admin_fenix</td>
-                                <td><i class="mdi mdi-chevron-right text-muted"></i></td>
+                                <td class="text-nowrap">{{ fila.timestamp|date:"d/m/Y H:i" }}</td>
+                                <td><span class="badge-activity {{ fila.badge_class }}">{{ fila.modelo_label }} {{ fila.accion }}</span></td>
+                                <td>{{ fila.descripcion }}</td>
+                                <td>{{ fila.usuario|default:"Sistema" }}</td>
+                                <td>
+                                    {% if fila.object_pk %}
+                                    <a href="{% url 'core:history' fila.app_label fila.model_name fila.object_pk %}?next={{ request.path|urlencode }}"><i class="mdi mdi-chevron-right text-muted"></i></a>
+                                    {% else %}
+                                    <i class="mdi mdi-chevron-right text-muted"></i>
+                                    {% endif %}
+                                </td>
                             </tr>
-                            <tr>
-                                <td>21/09/2026 08:30</td>
-                                <td><span class="badge-activity badge-activity-info">Matafuego actualizado</span></td>
-                                <td>Matafuego #MF-0012 - Cambio de estado</td>
-                                <td>Municipalidad de San Cayetano</td>
-                                <td>carla.perez</td>
-                                <td><i class="mdi mdi-chevron-right text-muted"></i></td>
-                            </tr>
-                            <tr>
-                                <td>20/09/2026 16:12</td>
-                                <td><span class="badge-activity badge-activity-warning">Nueva orden</span></td>
-                                <td>OT #0023 - Mantenimiento anual</td>
-                                <td>Cooperativa Eléctrica</td>
-                                <td>lucas.martin</td>
-                                <td><i class="mdi mdi-chevron-right text-muted"></i></td>
-                            </tr>
-                            <tr>
-                                <td>20/09/2026 11:20</td>
-                                <td><span class="badge-activity badge-activity-purple">Cliente creado</span></td>
-                                <td>Nuevo cliente registrado</td>
-                                <td>Fenix SRL</td>
-                                <td>admin_fenix</td>
-                                <td><i class="mdi mdi-chevron-right text-muted"></i></td>
-                            </tr>
-                            <tr>
-                                <td>19/09/2026 14:08</td>
-                                <td><span class="badge-activity badge-activity-peach">Tarea asignada</span></td>
-                                <td>Inspección en planta</td>
-                                <td>Agro Servicios S.A.</td>
-                                <td>sofia.gomez</td>
-                                <td><i class="mdi mdi-chevron-right text-muted"></i></td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                {% else %}
+                <p class="text-muted mb-0">Todavía no hay actividad registrada.</p>
+                {% endif %}
             </div>
         </div>
     </div>

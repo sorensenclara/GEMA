@@ -84,10 +84,16 @@ class CLienteAdmin(CompanyScopedAdmin, admin.ModelAdmin):
         'cuit_cuil',
         'nombre',
         'direccion',
+        'geo_status',
     )
 
+    # Datos geográficos: no editables desde el admin, se resuelven solo
+    # desde el buscador de ubicaciones del formulario de Cliente (ver
+    # cliente/forms/cliente.py); acá quedan visibles solo para soporte.
+    readonly_fields = ('localidad', 'provincia', 'codigo_postal', 'pais', 'geo_referencia_externa', 'geo_provider', 'geo_status')
+
     search_fields = ('codigo', 'nombre', 'cuit_cuil', 'contacto')
-    list_filter = ('estado', 'tipo')
+    list_filter = ('estado', 'tipo', 'geo_status')
     actions = [make_inactivo, make_activo, emitirInformeCliente, send_email]
     inlines = [OrdenTrabajoTabularInline, MatafuegoTabularInline]
     ordering = ['nombre']

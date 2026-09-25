@@ -1,22 +1,16 @@
 {% extends "core/base.html" %}
-{% load static %}
 {% block title %}Matafuegos - GEMA{% endblock %}
-
-{% block extra_css %}
-<link href="{% static 'lexa/libs/datatables.net-bs4/css/dataTables.bootstrap4.min.css' %}" rel="stylesheet" type="text/css">
-<link href="{% static 'lexa/libs/datatables.net-buttons-bs4/css/buttons.bootstrap4.min.css' %}" rel="stylesheet" type="text/css">
-<link href="{% static 'lexa/libs/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css' %}" rel="stylesheet" type="text/css">
-{% endblock %}
 
 {% block page_title %}
 <div class="row">
     <div class="col-12">
-        <div class="page-title-box d-flex align-items-center justify-content-between">
-            <h4 class="mb-0">Matafuegos</h4>
+        <div class="page-title-box d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div>
-                <a href="{% url 'matafuegos:vencimientos' %}" class="btn btn-outline-secondary waves-effect me-1"><i class="mdi mdi-calendar-alert me-1"></i> Alerta de vencimientos</a>
-                <a href="{% url 'matafuegos:proximos-vencimientos' %}" class="btn btn-outline-secondary waves-effect me-1"><i class="mdi mdi-calendar-clock me-1"></i> Próximos vencimientos</a>
-                <a href="{% url 'matafuegos:listado-informe' %}" class="btn btn-outline-secondary waves-effect me-1"><i class="mdi mdi-file-pdf-box me-1"></i> PDF</a>
+                <h4 class="mb-0">Matafuegos</h4>
+                <p class="text-muted small mb-0">Gestioná los vencimientos y creá notificaciones por WhatsApp.</p>
+            </div>
+            <div>
+                <a href="?{% if qs_sin_pagina %}{{ qs_sin_pagina }}&{% endif %}exportar=csv" class="btn btn-outline-secondary waves-effect me-1"><i class="mdi mdi-download me-1"></i> Exportar</a>
                 <a href="{% url 'matafuegos:create' %}" class="btn btn-primary waves-effect waves-light"><i class="mdi mdi-plus me-1"></i> Nuevo matafuego</a>
             </div>
         </div>
@@ -27,101 +21,195 @@
 {% block content %}
 <div class="card">
     <div class="card-body">
-        <form method="get" class="row g-2 mb-3">
+
+        {# --- Pestañas con contador (siempre calculado sobre la búsqueda/filtros actuales, no cambia al cambiar de pestaña) --- #}
+        <div class="btn-group gema-filtro-pills mb-3 flex-wrap" role="group">
+            <a href="?{% if qs_sin_filtro %}{{ qs_sin_filtro }}&{% endif %}filtro=todos" class="btn btn-outline-secondary waves-effect {% if filtro_actual == 'todos' %}active{% endif %}">
+                Todos <span class="badge rounded-pill bg-secondary ms-1">{{ counts.todos }}</span>
+            </a>
+            <a href="?{% if qs_sin_filtro %}{{ qs_sin_filtro }}&{% endif %}filtro=proximos" class="btn btn-outline-warning waves-effect {% if filtro_actual == 'proximos' %}active{% endif %}">
+                Próximos a vencer <span class="badge rounded-pill bg-warning text-dark ms-1">{{ counts.proximos }}</span>
+            </a>
+            <a href="?{% if qs_sin_filtro %}{{ qs_sin_filtro }}&{% endif %}filtro=vencidos" class="btn btn-outline-danger waves-effect {% if filtro_actual == 'vencidos' %}active{% endif %}">
+                Vencidos <span class="badge rounded-pill bg-danger ms-1">{{ counts.vencidos }}</span>
+            </a>
+            <a href="?{% if qs_sin_filtro %}{{ qs_sin_filtro }}&{% endif %}filtro=sin_notificar" class="btn btn-outline-secondary waves-effect {% if filtro_actual == 'sin_notificar' %}active{% endif %}">
+                Sin notificar <span class="badge rounded-pill bg-secondary ms-1">{{ counts.sin_notificar }}</span>
+            </a>
+            <a href="?{% if qs_sin_filtro %}{{ qs_sin_filtro }}&{% endif %}filtro=notificados" class="btn btn-outline-success waves-effect {% if filtro_actual == 'notificados' %}active{% endif %}">
+                Notificados <span class="badge rounded-pill bg-success ms-1">{{ counts.notificados }}</span>
+            </a>
+        </div>
+
+        {# --- Buscador + filtros --- #}
+        <form method="get" class="row g-2 mb-3 align-items-center">
+            <input type="hidden" name="filtro" value="{{ filtro_actual }}">
+            <div class="col-12 col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="mdi mdi-magnify"></i></span>
+                    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar cliente, matafuego o tipo...">
+                </div>
+            </div>
             <div class="col-auto">
                 <select name="tipo" class="form-select" onchange="this.form.submit()">
                     <option value="">Todos los tipos</option>
                     {% for tipo in tipos %}
-                    <option value="{{ tipo.pk }}" {% if request.GET.tipo == tipo.pk|stringformat:"s" %}selected{% endif %}>{{ tipo.tipo }}</option>
+                    <option value="{{ tipo.pk }}" {% if tipo_actual == tipo.pk|stringformat:"s" %}selected{% endif %}>{{ tipo.tipo }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="col-auto">
                 <select name="estado" class="form-select" onchange="this.form.submit()">
-                    <option value="">Todos los estados</option>
+                    <option value="" {% if estado_actual == '' %}selected{% endif %}>Todos los estados</option>
                     {% for valor, etiqueta in estados %}
-                    <option value="{{ valor }}" {% if request.GET.estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                    <option value="{{ valor }}" {% if estado_actual == valor %}selected{% endif %}>{{ etiqueta }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="col-auto">
-                <select name="vencido" class="form-select" onchange="this.form.submit()">
-                    <option value="">Vencidos y no vencidos</option>
-                    <option value="1" {% if request.GET.vencido == '1' %}selected{% endif %}>Vencidos</option>
-                    <option value="0" {% if request.GET.vencido == '0' %}selected{% endif %}>No vencidos</option>
+                <select name="cliente" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todos los clientes</option>
+                    {% for c in clientes %}
+                    <option value="{{ c.pk }}" {% if cliente_actual == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.nombre }}</option>
+                    {% endfor %}
                 </select>
             </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-secondary waves-effect"><i class="mdi mdi-magnify me-1"></i>Buscar</button>
+            </div>
         </form>
-        <div class="table-responsive">
-            <table id="datatable-matafuegos" class="table table-centered table-nowrap mb-0">
+
+        <div class="table-responsive d-none d-md-block">
+            <table class="table table-centered mb-0">
                 <thead>
-                    <tr><th>Número</th><th>Cliente</th><th>Tipo</th><th>Próxima carga</th><th>Próximo PH</th><th>Vencido</th><th>Estado</th><th>Acciones</th></tr>
+                    <tr>
+                        <th>Número</th>
+                        <th>Cliente</th>
+                        <th>Tipo</th>
+                        <th>Próx. Carga</th>
+                        <th>Próx. PH</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
                 </thead>
                 <tbody>
-                    {% for m in matafuegos %}
+                    {% for fila in filas %}
                     <tr>
-                        <td>{{ m.numero }}</td>
-                        <td>{{ m.cliente }}</td>
-                        <td>{{ m.tipo }}</td>
-                        <td>{{ m.fecha_proxima_carga|default:"-" }}</td>
-                        <td>{{ m.fecha_proxima_ph|default:"-" }}</td>
-                        <td>
-                            {% if m.vencido %}
-                                <span class="badge bg-danger">Sí</span>
+                        <td class="text-nowrap">{{ fila.matafuego.numero }}</td>
+                        <td>{{ fila.matafuego.cliente.nombre }} <span class="text-muted small text-nowrap">- {{ fila.matafuego.cliente.codigo }}</span></td>
+                        <td>{{ fila.matafuego.tipo.tipo }}{% if fila.matafuego.tipo.peso %} {{ fila.matafuego.tipo.peso|floatformat:0 }}{% endif %}</td>
+                        <td class="text-nowrap">{{ fila.matafuego.fecha_proxima_carga|date:"d/m/Y"|default:"-" }}</td>
+                        <td class="text-nowrap">{{ fila.matafuego.fecha_proxima_ph|date:"d/m/Y"|default:"-" }}</td>
+                        <td class="text-nowrap">
+                            {% if fila.estado_vencimiento == 'vencido' %}
+                                <span class="status-badge status-badge-danger"><i class="mdi mdi-alert-circle-outline"></i>Vencido</span>
+                            {% elif fila.estado_vencimiento == 'proximo' %}
+                                <span class="status-badge status-badge-warning"><i class="mdi mdi-clock-alert-outline"></i>Próximo a vencer</span>
                             {% else %}
-                                <span class="badge bg-success">No</span>
+                                <span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>Al día</span>
                             {% endif %}
                         </td>
                         <td>
-                            {% if m.estado == 'a' %}
-                                <span class="badge bg-success">Activo</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Inactivo</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{% url 'orden_trabajo:matafuego-informe-historico' m.pk %}" class="text-primary" title="Informe histórico"><i class="mdi mdi-file-clock font-size-18"></i></a>
-                            <a href="{% url 'matafuegos:update' m.pk %}" class="text-primary" title="Editar"><i class="mdi mdi-pencil font-size-18"></i></a>
-                            {% if m.estado == 'a' %}
-                            <form method="post" action="{% url 'matafuegos:eliminar' m.pk %}" style="display:inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-link p-0 text-danger" title="Eliminar" onclick="return confirm('¿Eliminar el matafuego N° {{ m.numero }}?');"><i class="mdi mdi-delete font-size-18"></i></button>
-                            </form>
-                            {% else %}
-                            <form method="post" action="{% url 'matafuegos:activar' m.pk %}" style="display:inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-link p-0 text-success" title="Activar"><i class="mdi mdi-check-circle font-size-18"></i></button>
-                            </form>
-                            {% endif %}
+                            <div class="action-icons flex-nowrap">
+                                {% include "matafuegos/_panel_vencimientos_accion.html" %}
+                                <a href="{% url 'orden_trabajo:matafuego-informe-historico' fila.matafuego.pk %}" class="action-icon action-icon-orange" title="Informe histórico"><i class="mdi mdi-file-pdf-outline"></i></a>
+                                <a href="{% url 'matafuegos:update' fila.matafuego.pk %}" class="action-icon action-icon-blue" title="Editar"><i class="mdi mdi-pencil-outline"></i></a>
+                                {% if fila.matafuego.estado == 'a' %}
+                                <form method="post" action="{% url 'matafuegos:eliminar' fila.matafuego.pk %}" style="display:inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-icon action-icon-red" title="Eliminar" onclick="return confirm('¿Eliminar el matafuego N° {{ fila.matafuego.numero }}?');"><i class="mdi mdi-trash-can-outline"></i></button>
+                                </form>
+                                {% else %}
+                                <form method="post" action="{% url 'matafuegos:activar' fila.matafuego.pk %}" style="display:inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-icon action-icon-green" title="Activar"><i class="mdi mdi-check-circle-outline"></i></button>
+                                </form>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center text-muted">No hay matafuegos para este filtro.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        <div class="d-md-none">
+            {% for fila in filas %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <strong>{{ fila.matafuego.cliente.nombre }}</strong>
+                        <span class="text-muted small">N° {{ fila.matafuego.numero }}</span>
+                    </div>
+                    <div class="small text-muted mb-1">{{ fila.matafuego.cliente.codigo }} · {{ fila.matafuego.tipo.tipo }}{% if fila.matafuego.tipo.peso %} {{ fila.matafuego.tipo.peso|floatformat:0 }}{% endif %}</div>
+                    <div class="small text-muted mb-1">Carga: {{ fila.matafuego.fecha_proxima_carga|date:"d/m/Y"|default:"-" }} · PH: {{ fila.matafuego.fecha_proxima_ph|date:"d/m/Y"|default:"-" }}</div>
+                    <div class="mb-2">
+                        {% if fila.estado_vencimiento == 'vencido' %}<span class="status-badge status-badge-danger"><i class="mdi mdi-alert-circle-outline"></i>Vencido</span>
+                        {% elif fila.estado_vencimiento == 'proximo' %}<span class="status-badge status-badge-warning"><i class="mdi mdi-clock-alert-outline"></i>Próximo a vencer</span>
+                        {% else %}<span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>Al día</span>{% endif %}
+                    </div>
+                    <div class="action-icons">
+                        {% include "matafuegos/_panel_vencimientos_accion.html" %}
+                        <a href="{% url 'orden_trabajo:matafuego-informe-historico' fila.matafuego.pk %}" class="action-icon action-icon-orange" title="Informe histórico"><i class="mdi mdi-file-pdf-outline"></i></a>
+                        <a href="{% url 'matafuegos:update' fila.matafuego.pk %}" class="action-icon action-icon-blue" title="Editar"><i class="mdi mdi-pencil-outline"></i></a>
+                        {% if fila.matafuego.estado == 'a' %}
+                        <form method="post" action="{% url 'matafuegos:eliminar' fila.matafuego.pk %}" style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit" class="action-icon action-icon-red" title="Eliminar" onclick="return confirm('¿Eliminar el matafuego N° {{ fila.matafuego.numero }}?');"><i class="mdi mdi-trash-can-outline"></i></button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="{% url 'matafuegos:activar' fila.matafuego.pk %}" style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit" class="action-icon action-icon-green" title="Activar"><i class="mdi mdi-check-circle-outline"></i></button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center text-muted">No hay matafuegos para este filtro.</p>
+            {% endfor %}
+        </div>
+
+        {% if pagina.paginator.num_pages > 1 %}
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+            <span class="text-muted small">Mostrando {{ pagina.start_index }} a {{ pagina.end_index }} de {{ pagina.paginator.count }}</span>
+            <ul class="pagination mb-0">
+                {% if pagina.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if qs_sin_pagina %}{{ qs_sin_pagina }}&{% endif %}page={{ pagina.previous_page_number }}">Anterior</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                {% endif %}
+                {% for num in pagina.paginator.page_range %}
+                <li class="page-item {% if num == pagina.number %}active{% endif %}">
+                    <a class="page-link" href="?{% if qs_sin_pagina %}{{ qs_sin_pagina }}&{% endif %}page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if pagina.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if qs_sin_pagina %}{{ qs_sin_pagina }}&{% endif %}page={{ pagina.next_page_number }}">Siguiente</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="alert alert-light border mt-3 mb-0 small">
+            <i class="mdi mdi-information-outline me-1"></i>
+            El botón <strong>Notificar</strong> se habilita solo para matafuegos vencidos o próximos a vencer (dentro de los próximos 30 días). Para ver el historial de notificaciones, ingresá a la ficha del matafuego.
+        </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'lexa/libs/datatables.net/js/jquery.dataTables.min.js' %}"></script>
-<script src="{% static 'lexa/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
-<script src="{% static 'lexa/libs/datatables.net-buttons/js/dataTables.buttons.min.js' %}"></script>
-<script src="{% static 'lexa/libs/datatables.net-buttons-bs4/js/buttons.bootstrap4.min.js' %}"></script>
-<script src="{% static 'lexa/libs/datatables.net-buttons/js/buttons.html5.min.js' %}"></script>
-<script src="{% static 'lexa/libs/jszip/jszip.min.js' %}"></script>
-<script src="{% static 'lexa/libs/pdfmake/build/pdfmake.min.js' %}"></script>
-<script src="{% static 'lexa/libs/pdfmake/build/vfs_fonts.js' %}"></script>
-<script src="{% static 'lexa/libs/datatables.net-responsive/js/dataTables.responsive.min.js' %}"></script>
-<script src="{% static 'lexa/libs/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js' %}"></script>
+{% if abrir_whatsapp %}
 <script>
-$(function () {
-    $('#datatable-matafuegos').DataTable({
-        dom: 'Bfrtip',
-        buttons: ['copy', 'excel'],
-        responsive: true,
-        language: { search: 'Buscar:', lengthMenu: 'Mostrar _MENU_ filas', info: 'Mostrando _START_ a _END_ de _TOTAL_', paginate: { previous: 'Anterior', next: 'Siguiente' }, zeroRecords: 'No hay matafuegos cargados todavía.' },
-    });
-});
+    window.open("{{ abrir_whatsapp|escapejs }}", "GEMA_WHATSAPP");
 </script>
+{% endif %}
 {% endblock %}

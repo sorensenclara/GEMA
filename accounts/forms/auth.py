@@ -12,7 +12,15 @@ from core.forms import BootstrapFieldsMixin
 
 
 class StyledAuthenticationForm(BootstrapFieldsMixin, AuthenticationForm):
-    pass
+    """Suma los placeholders que usa el nuevo diseño del login (ver
+    accounts/templates/accounts/login.html): los <label> de arriba se
+    reemplazaron por texto dentro del input, así que el placeholder pasa
+    a ser el único lugar donde se indica qué va en cada campo."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs['placeholder'] = 'Usuario'
+        self.fields['password'].widget.attrs['placeholder'] = 'Contraseña'
 
 
 class StyledPasswordResetForm(BootstrapFieldsMixin, PasswordResetForm):

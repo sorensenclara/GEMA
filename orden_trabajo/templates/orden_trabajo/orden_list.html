@@ -11,7 +11,10 @@
 <div class="row">
     <div class="col-12">
         <div class="page-title-box d-flex align-items-center justify-content-between">
-            <h4 class="mb-0">Órdenes de trabajo</h4>
+            <div>
+                <h4 class="mb-0">Órdenes de trabajo</h4>
+                <p class="text-muted small mb-0">Gestioná las órdenes de trabajo de tus clientes.</p>
+            </div>
             <div>
                 <a href="{% url 'orden_trabajo:orden-informe-facturacion-ultima-semana' %}" class="btn btn-outline-secondary waves-effect me-1"><i class="mdi mdi-file-document-outline me-1"></i> Facturación última semana</a>
                 <a href="{% url 'orden_trabajo:orden-informe-recargas' %}" class="btn btn-outline-secondary waves-effect me-1"><i class="mdi mdi-file-chart-outline me-1"></i> Informe de recargas</a>
@@ -75,22 +78,32 @@
                                     <span class="badge bg-secondary">{{ o.matafuegos.get_categoria_display }}</span>
                                 {% endif %}
                             </td>
-                            <td><span class="badge bg-info">{{ o.get_estado_display }}</span></td>
+                            <td>
+                                {% if o.estado == 'p' %}<span class="status-badge status-badge-warning"><i class="mdi mdi-clock-outline"></i>{{ o.get_estado_display }}</span>
+                                {% elif o.estado == 'ep' %}<span class="status-badge status-badge-info"><i class="mdi mdi-play-circle-outline"></i>{{ o.get_estado_display }}</span>
+                                {% elif o.estado == 'c' %}<span class="status-badge status-badge-danger"><i class="mdi mdi-close-circle-outline"></i>{{ o.get_estado_display }}</span>
+                                {% elif o.estado == 'f' %}<span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>{{ o.get_estado_display }}</span>
+                                {% elif o.estado == 'fac' %}<span class="status-badge status-badge-purple"><i class="mdi mdi-file-document-outline"></i>{{ o.get_estado_display }}</span>
+                                {% elif o.estado == 'i' %}<span class="status-badge status-badge-secondary"><i class="mdi mdi-printer-outline"></i>{{ o.get_estado_display }}</span>
+                                {% endif %}
+                            </td>
                             <td>{{ o.fecha_cierre|default:"-" }}</td>
                             <td>{{ o.monto_total }}</td>
                             <td class="text-nowrap">
-                                <a href="{% url 'orden_trabajo:orden-update' o.pk %}" class="text-primary" title="Editar"><i class="mdi mdi-pencil font-size-18"></i></a>
-                                <a href="{% url 'orden_trabajo:orden-informe' o.pk %}" class="text-primary" title="Informe"><i class="mdi mdi-file-pdf-box font-size-18"></i></a>
-                                {% if o.estado == 'p' %}
-                                <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'iniciar' %}" class="btn btn-link p-0 border-0 text-primary align-baseline" title="Pasar a en proceso"><i class="mdi mdi-play-circle-outline font-size-18"></i></button>
-                                {% elif o.estado == 'ep' %}
-                                <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'finalizar' %}" class="btn btn-link p-0 border-0 text-success align-baseline" title="Finalizar"><i class="mdi mdi-check-circle-outline font-size-18"></i></button>
-                                <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'cancelar' %}" class="btn btn-link p-0 border-0 text-danger align-baseline" title="Cancelar" onclick="return confirm('¿Cancelar la orden N° {{ o.id }}?');"><i class="mdi mdi-close-circle-outline font-size-18"></i></button>
-                                {% elif o.estado == 'f' %}
-                                <button type="button" class="btn btn-link p-0 border-0 text-primary align-baseline btn-imprimir-orden" data-pk="{{ o.pk }}" data-accion="{% if o.matafuegos.categoria == 'd' %}oblea_domiciliaria{% else %}oblea_vehicular{% endif %}" title="Imprimir oblea DPS"><i class="mdi mdi-printer font-size-18"></i></button>
-                                {% elif o.estado == 'i' %}
-                                <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'facturar' %}" class="btn btn-link p-0 border-0 text-primary align-baseline" title="Facturar"><i class="mdi mdi-cash-register font-size-18"></i></button>
-                                {% endif %}
+                                <div class="action-icons flex-nowrap">
+                                    <a href="{% url 'orden_trabajo:orden-update' o.pk %}" class="action-icon action-icon-blue" title="Editar"><i class="mdi mdi-pencil-outline"></i></a>
+                                    <a href="{% url 'orden_trabajo:orden-informe' o.pk %}" class="action-icon action-icon-orange" title="Informe"><i class="mdi mdi-file-pdf-outline"></i></a>
+                                    {% if o.estado == 'p' %}
+                                    <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'iniciar' %}" class="action-icon action-icon-blue" title="Pasar a en proceso"><i class="mdi mdi-play-outline"></i></button>
+                                    {% elif o.estado == 'ep' %}
+                                    <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'finalizar' %}" class="action-icon action-icon-green" title="Finalizar"><i class="mdi mdi-check-circle-outline"></i></button>
+                                    <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'cancelar' %}" class="action-icon action-icon-red" title="Cancelar" onclick="return confirm('¿Cancelar la orden N° {{ o.id }}?');"><i class="mdi mdi-close"></i></button>
+                                    {% elif o.estado == 'f' %}
+                                    <button type="button" class="btn btn-link p-0 border-0 text-primary align-baseline btn-imprimir-orden" data-pk="{{ o.pk }}" data-accion="{% if o.matafuegos.categoria == 'd' %}oblea_domiciliaria{% else %}oblea_vehicular{% endif %}" title="Imprimir oblea DPS"><i class="mdi mdi-printer font-size-18"></i></button>
+                                    {% elif o.estado == 'i' %}
+                                    <button type="submit" formaction="{% url 'orden_trabajo:orden-cambiar-estado' o.pk 'facturar' %}" class="btn btn-link p-0 border-0 text-primary align-baseline" title="Facturar"><i class="mdi mdi-cash-register font-size-18"></i></button>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}

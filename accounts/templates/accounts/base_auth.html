@@ -4,14 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}GEMA{% endblock %}</title>
-    <link rel="shortcut icon" href="{% static 'lexa/images/favicon.ico' %}">
+    <link rel="shortcut icon" href="{% static 'core/images/favicon.ico' %}">
     <link href="{% static 'lexa/css/bootstrap.min.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'lexa/css/icons.min.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'lexa/css/app.min.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'core/theme.css' %}" rel="stylesheet" type="text/css">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="auth-page">
     <div class="account-pages my-5 pt-sm-5">
         <div class="container">
             <div class="row justify-content-center">
@@ -30,9 +30,6 @@
                                 {% block content %}{% endblock %}
                             </div>
                         </div>
-                    </div>
-                    <div class="mt-5 text-center">
-                        <p>GEMA &middot; Plataforma de gestión de matafuegos</p>
                     </div>
                 </div>
             </div>

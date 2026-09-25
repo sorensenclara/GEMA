@@ -38,10 +38,13 @@ def count_ordenes_pendientes(company):
     return Ordenes_de_trabajo.objects.filter(company=company, estado='p').count()
 
 
-def ordenes_por_estado(company):
+def ordenes_por_estado(company, periodo_dias=None):
     """Cantidad de órdenes de la compañía agrupadas por estado, para el
-    gráfico del dashboard."""
-    return (
-        Ordenes_de_trabajo.objects.filter(company=company)
-        .values('estado').annotate(total=Count('id')).order_by('estado')
-    )
+    gráfico del dashboard. `periodo_dias` (30/60/90, o None = todo el
+    historial) filtra por `fecha_creacion` -- es la fecha de negocio de la
+    orden (la que carga/ve el usuario), no `created_at` de AuditModel (esa
+    es la fecha de auditoría de cuándo se guardó el registro)."""
+    qs = Ordenes_de_trabajo.objects.filter(company=company)
+    if periodo_dias:
+        qs = qs.filter(fecha_creacion__gte=date.today() - timedelta(days=periodo_dias))
+    return qs.values('estado').annotate(total=Count('id')).order_by('estado')

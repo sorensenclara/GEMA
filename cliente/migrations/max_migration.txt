@@ -1,1 +1,1 @@
-0025_cliente_created_at_cliente_created_by_and_more
+0027_set_geo_status_legado_clientes_existentes

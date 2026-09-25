@@ -1,4 +1,5 @@
 {% extends "core/base.html" %}
+{% load static %}
 {% block title %}Cliente - GEMA{% endblock %}
 
 {% block page_title %}
@@ -19,12 +20,38 @@
             {{ form.non_field_errors }}
             <div class="row">
                 {% for field in form %}
+                {% if field.name != 'direccion' and field.name != 'geo_seleccion_token' and field.name != 'geo_tocado' %}
                 <div class="mb-3 col-md-6">
                     <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
                     {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
                 </div>
+                {% endif %}
                 {% endfor %}
+            </div>
+
+            {# Ubicación/Dirección: único campo visible; localidad, provincia, #}
+            {# código postal y país se resuelven del lado del servidor a partir #}
+            {# de la sugerencia elegida (ver core/static/core/js/ubicacion-buscador.js #}
+            {# y core/services/geocoding.py). Sin mapa ni coordenadas visibles. #}
+            <div class="row">
+                <div class="mb-3 col-md-8 gema-ubicacion-buscador"
+                     data-buscar-url="{% url 'cliente:ubicacion-buscar' %}">
+                    <label class="form-label" for="{{ form.direccion.id_for_label }}">{{ form.direccion.label }}</label>
+                    <div class="input-group">
+                        {{ form.direccion }}
+                        <button type="button" class="btn btn-outline-secondary gema-ubicacion-buscar-btn">Buscar</button>
+                    </div>
+                    {% if form.direccion.errors %}<div class="text-danger small mt-1">{{ form.direccion.errors }}</div>{% endif %}
+                    {{ form.geo_seleccion_token }}
+                    {{ form.geo_tocado }}
+
+                    <div class="gema-ubicacion-estado mt-1"></div>
+                    <div class="gema-ubicacion-resultados mt-2" style="display:none"></div>
+                    <div class="mt-1">
+                        <a href="#" class="gema-ubicacion-manual small">¿No aparece? Ingresar dirección manualmente</a>
+                    </div>
+                </div>
             </div>
             <button class="btn btn-primary waves-effect waves-light" type="submit">Guardar</button>
             <a href="{% url 'cliente:list' %}" class="btn btn-secondary waves-effect">Cancelar</a>
@@ -54,19 +81,21 @@
                                 <td>{{ m.fecha_proxima_carga|default:"-" }}</td>
                                 <td>{{ m.fecha_proxima_ph|default:"-" }}</td>
                                 <td>
-                                    {% if m.vencido %}<span class="badge bg-danger">Sí</span>{% else %}<span class="badge bg-success">No</span>{% endif %}
+                                    {% if m.vencido %}<span class="status-badge status-badge-danger"><i class="mdi mdi-alert-circle-outline"></i>Sí</span>{% else %}<span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>No</span>{% endif %}
                                 </td>
                                 <td>
-                                    {% if m.estado == 'a' %}<span class="badge bg-success">Activo</span>{% else %}<span class="badge bg-secondary">Inactivo</span>{% endif %}
+                                    {% if m.estado == 'a' %}<span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>Activo</span>{% else %}<span class="status-badge status-badge-secondary"><i class="mdi mdi-minus-circle-outline"></i>Inactivo</span>{% endif %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'matafuegos:update' m.pk %}" class="text-primary" title="Editar"><i class="mdi mdi-pencil font-size-18"></i></a>
-                                    {% if m.estado != 'a' %}
-                                    <form method="post" action="{% url 'matafuegos:activar' m.pk %}" style="display:inline">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-link p-0 text-success" title="Activar"><i class="mdi mdi-check-circle font-size-18"></i></button>
-                                    </form>
-                                    {% endif %}
+                                    <div class="action-icons">
+                                        <a href="{% url 'matafuegos:update' m.pk %}" class="action-icon action-icon-blue" title="Editar"><i class="mdi mdi-pencil-outline"></i></a>
+                                        {% if m.estado != 'a' %}
+                                        <form method="post" action="{% url 'matafuegos:activar' m.pk %}" style="display:inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="action-icon action-icon-green" title="Activar"><i class="mdi mdi-check-circle-outline"></i></button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}
@@ -95,12 +124,22 @@
                             <tr>
                                 <td>{{ o.id }}</td>
                                 <td>{{ o.matafuegos }}</td>
-                                <td><span class="badge bg-info">{{ o.get_estado_display }}</span></td>
+                                <td>
+                                    {% if o.estado == 'p' %}<span class="status-badge status-badge-warning"><i class="mdi mdi-clock-outline"></i>{{ o.get_estado_display }}</span>
+                                    {% elif o.estado == 'ep' %}<span class="status-badge status-badge-info"><i class="mdi mdi-play-circle-outline"></i>{{ o.get_estado_display }}</span>
+                                    {% elif o.estado == 'c' %}<span class="status-badge status-badge-danger"><i class="mdi mdi-close-circle-outline"></i>{{ o.get_estado_display }}</span>
+                                    {% elif o.estado == 'f' %}<span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>{{ o.get_estado_display }}</span>
+                                    {% elif o.estado == 'fac' %}<span class="status-badge status-badge-purple"><i class="mdi mdi-file-document-outline"></i>{{ o.get_estado_display }}</span>
+                                    {% elif o.estado == 'i' %}<span class="status-badge status-badge-secondary"><i class="mdi mdi-printer-outline"></i>{{ o.get_estado_display }}</span>
+                                    {% endif %}
+                                </td>
                                 <td>{{ o.fecha_cierre|default:"-" }}</td>
                                 <td>{{ o.monto_total }}</td>
                                 <td>
-                                    <a href="{% url 'orden_trabajo:orden-update' o.pk %}" class="text-primary" title="Editar"><i class="mdi mdi-pencil font-size-18"></i></a>
-                                    <a href="{% url 'orden_trabajo:orden-informe' o.pk %}" class="text-primary" title="Informe"><i class="mdi mdi-file-pdf-box font-size-18"></i></a>
+                                    <div class="action-icons">
+                                        <a href="{% url 'orden_trabajo:orden-update' o.pk %}" class="action-icon action-icon-blue" title="Editar"><i class="mdi mdi-pencil-outline"></i></a>
+                                        <a href="{% url 'orden_trabajo:orden-informe' o.pk %}" class="action-icon action-icon-orange" title="Informe"><i class="mdi mdi-file-pdf-outline"></i></a>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}
@@ -114,4 +153,8 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'core/js/ubicacion-buscador.js' %}"></script>
 {% endblock %}

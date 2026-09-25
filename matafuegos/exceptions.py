@@ -11,3 +11,13 @@ class SinMatafuegosParaInformeException(DomainException):
 
 class RangoDeFechasInvalidoException(DomainException):
     """La fecha de fin del rango es anterior a la fecha de inicio."""
+
+
+class ClienteSinWhatsAppException(DomainException):
+    """El cliente del matafuego no tiene un teléfono normalizado y válido
+    para armar un enlace de WhatsApp."""
+
+
+class MatafuegoSinVencimientoException(DomainException):
+    """El matafuego no tiene ningún vencimiento (carga o PH) próximo -- no
+    hay nada que notificar."""

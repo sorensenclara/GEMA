@@ -6,6 +6,12 @@ from .list import (
     MatafuegosListadoInformeView,
     MatafuegosListView,
 )
+from .panel_vencimientos import MatafuegosPanelVencimientosView
+from .notificaciones import (
+    MatafuegosNotificarView,
+    NotificacionMarcarEnviadaView,
+    NotificacionMarcarErrorView,
+)
 from .mis_matafuegos import MisMatafuegosDetailView, MisMatafuegosListView
 from .vencimientos import MatafuegosProximosVencimientosView, MatafuegosVencimientosView
 
@@ -21,4 +27,8 @@ __all__ = [
     'MisMatafuegosListView',
     'MisMatafuegosDetailView',
     'MatafuegosAutoComplete',
+    'MatafuegosNotificarView',
+    'NotificacionMarcarEnviadaView',
+    'NotificacionMarcarErrorView',
+    'MatafuegosPanelVencimientosView',
 ]

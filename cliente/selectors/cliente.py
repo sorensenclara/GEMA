@@ -1,12 +1,12 @@
 from datetime import date, timedelta
 
-from django.db.models import Q
+from django.db.models import Count, Q
 
 from cliente.models import Cliente
 
 
 def list_clientes(company, q=None):
-    qs = Cliente.objects.filter(company=company).order_by('nombre')
+    qs = Cliente.objects.filter(company=company).annotate(matafuegos_count=Count('matafuegos')).order_by('nombre')
     if q:
         qs = qs.filter(Q(nombre__icontains=q) | Q(codigo__icontains=q) | Q(cuit_cuil__icontains=q))
     return qs

@@ -32,12 +32,12 @@
                         <td>{{ t.precio }}</td>
                         <td>
                             {% if t.es_recarga %}
-                                <span class="badge bg-success">Sí</span>
+                                <span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>Sí</span>
                             {% else %}
-                                <span class="badge bg-secondary">No</span>
+                                <span class="status-badge status-badge-secondary"><i class="mdi mdi-minus-circle-outline"></i>No</span>
                             {% endif %}
                         </td>
-                        <td><a href="{% url 'orden_trabajo:tarea-update' t.pk %}" class="text-primary" title="Editar"><i class="mdi mdi-pencil font-size-18"></i></a></td>
+                        <td><a href="{% url 'orden_trabajo:tarea-update' t.pk %}" class="action-icon action-icon-blue" title="Editar"><i class="mdi mdi-pencil-outline"></i></a></td>
                     </tr>
                     {% endfor %}
                 </tbody>

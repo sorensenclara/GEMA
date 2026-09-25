@@ -1,6 +1,7 @@
 from .actions import ClienteEnviarInformeView, ClienteInformeView, ClienteToggleActiveView
 from .autocomplete import ClienteAutoComplete
 from .edit import ClienteCreateView, ClienteUpdateView
+from .geocoding import ClienteUbicacionBuscarView
 from .list import ClienteListadoInformeView, ClienteListView
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     'ClienteInformeView',
     'ClienteEnviarInformeView',
     'ClienteAutoComplete',
+    'ClienteUbicacionBuscarView',
 ]

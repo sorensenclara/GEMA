@@ -9,6 +9,12 @@ ESTADOS = [
     ('i', 'Inactivo'),
 ]
 
+GEO_STATUS_CHOICES = [
+    ('georreferenciado', 'Georreferenciado'),
+    ('manual_legado', 'Manual (legado)'),
+    ('manual_no_encontrado', 'Manual (no encontrado)'),
+]
+
 
 class Cliente(AuditModel):
     TIPOS = [
@@ -21,7 +27,17 @@ class Cliente(AuditModel):
     cuit_cuil = models.CharField('CUIT/CUIL', max_length=11, null=True, blank=True, help_text="Solo se deben ingresar numeros")
     nombre = models.CharField('Nombre/ Razón Social', max_length=80)
     contacto = models.CharField('Nombre contacto', max_length=80, null=True, blank=True)
-    direccion = models.CharField('Dirección', max_length=80, null=True)
+    direccion = models.CharField('Dirección', max_length=255, null=True)
+    localidad = models.CharField('Localidad', max_length=120, null=True, blank=True)
+    provincia = models.CharField('Provincia', max_length=120, null=True, blank=True)
+    codigo_postal = models.CharField('Código postal', max_length=20, null=True, blank=True)
+    pais = models.CharField('País', max_length=80, null=True, blank=True)
+    # osm_type:osm_id de Nominatim (ver core/services/geocoding.py) -- NO es
+    # el place_id de Nominatim, que su propia documentación marca como
+    # interno y no estable entre instalaciones/actualizaciones.
+    geo_referencia_externa = models.CharField('Referencia externa de ubicación', max_length=50, null=True, blank=True)
+    geo_provider = models.CharField('Proveedor de geocodificación', max_length=30, null=True, blank=True)
+    geo_status = models.CharField('Estado de georreferenciación', max_length=25, choices=GEO_STATUS_CHOICES, null=True, blank=True)
     telefono = models.CharField('Telefono', max_length=80, null=True)
     email = models.EmailField('Email', blank=True, max_length=264, null=True)
     web = models.URLField('Web', blank=True, max_length=200, null=True)

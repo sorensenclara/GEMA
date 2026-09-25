@@ -1,3 +1,5 @@
+import re
+
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -40,6 +42,21 @@ class User(AbstractUser):
     @property
     def is_cliente_final(self):
         return self.role == Role.CLIENTE_FINAL
+
+    @property
+    def initials(self):
+        """Iniciales para el avatar circular del topbar (ver core/base.html):
+        nombre + apellido si están cargados; si no, las primeras letras del
+        username separado por '.'/'_'/espacio (ej. "admin_fenix" -> "AF");
+        si el username es una sola palabra, sus 2 primeras letras."""
+        if self.first_name or self.last_name:
+            partes = [self.first_name, self.last_name]
+        else:
+            partes = re.split(r'[._\s]+', self.username)
+        letras = [parte[0].upper() for parte in partes if parte][:2]
+        if len(letras) < 2 and partes and partes[0]:
+            letras = list(partes[0][:2].upper())
+        return ''.join(letras) or '?'
 
     def clean(self):
         super().clean()

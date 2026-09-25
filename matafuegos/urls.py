@@ -13,6 +13,10 @@ urlpatterns = [
     path('matafuegos/<int:pk>/activar/', views.MatafuegosActivarView.as_view(), name='activar'),
     path('matafuegos/vencimientos/', views.MatafuegosVencimientosView.as_view(), name='vencimientos'),
     path('matafuegos/proximos-vencimientos/', views.MatafuegosProximosVencimientosView.as_view(), name='proximos-vencimientos'),
+    path('matafuegos/panel-vencimientos/', views.MatafuegosPanelVencimientosView.as_view(), name='panel-vencimientos'),
+    path('matafuegos/<int:pk>/notificar/', views.MatafuegosNotificarView.as_view(), name='notificar'),
+    path('matafuegos/notificaciones/<int:pk>/marcar-enviada/', views.NotificacionMarcarEnviadaView.as_view(), name='notificacion-marcar-enviada'),
+    path('matafuegos/notificaciones/<int:pk>/marcar-error/', views.NotificacionMarcarErrorView.as_view(), name='notificacion-marcar-error'),
 
     path('mis-matafuegos/', views.MisMatafuegosListView.as_view(), name='mis-matafuegos'),
     path('mis-matafuegos/<int:pk>/', views.MisMatafuegosDetailView.as_view(), name='mis-matafuegos-detalle'),

@@ -1,4 +1,6 @@
 from .matafuegos import (
+    aplicar_filtro_vencimientos,
+    contar_vencimientos_por_filtro,
     count_matafuegos,
     count_vencimiento_proximo,
     list_matafuegos,
@@ -6,6 +8,10 @@ from .matafuegos import (
     list_proximos_vencimientos_ph,
     list_vencimiento_entre,
     matafuegos_de_cliente,
+    notificacion_vigente,
+    vencimiento_relevante,
+    list_panel_vencimientos,
+    estado_vencimiento,
 )
 
 __all__ = [
@@ -16,4 +22,10 @@ __all__ = [
     'matafuegos_de_cliente',
     'count_matafuegos',
     'count_vencimiento_proximo',
+    'vencimiento_relevante',
+    'notificacion_vigente',
+    'list_panel_vencimientos',
+    'aplicar_filtro_vencimientos',
+    'contar_vencimientos_por_filtro',
+    'estado_vencimiento',
 ]

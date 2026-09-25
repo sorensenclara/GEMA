@@ -34,22 +34,24 @@
                         <td>{{ u.cliente|default:"-" }}</td>
                         <td>
                             {% if u.is_active %}
-                                <span class="badge bg-success">Activo</span>
+                                <span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>Activo</span>
                             {% else %}
-                                <span class="badge bg-secondary">Inactivo</span>
+                                <span class="status-badge status-badge-secondary"><i class="mdi mdi-minus-circle-outline"></i>Inactivo</span>
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{% url 'accounts:user-update' u.pk %}" class="text-primary" title="Editar"><i class="mdi mdi-pencil font-size-18"></i></a>
-                            <a href="{% url 'accounts:user-password-change' u.pk %}" class="text-primary" title="Cambiar contraseña"><i class="mdi mdi-lock-reset font-size-18"></i></a>
-                            {% if u.pk != user.pk %}
-                            <form method="post" action="{% url 'accounts:user-toggle-active' u.pk %}" style="display:inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-link p-0 {% if u.is_active %}text-danger{% else %}text-success{% endif %}" title="{% if u.is_active %}Desactivar{% else %}Activar{% endif %}">
-                                    <i class="mdi {% if u.is_active %}mdi-close-circle{% else %}mdi-check-circle{% endif %} font-size-18"></i>
-                                </button>
-                            </form>
-                            {% endif %}
+                            <div class="action-icons">
+                                <a href="{% url 'accounts:user-update' u.pk %}" class="action-icon action-icon-blue" title="Editar"><i class="mdi mdi-pencil-outline"></i></a>
+                                <a href="{% url 'accounts:user-password-change' u.pk %}" class="action-icon action-icon-blue" title="Cambiar contraseña"><i class="mdi mdi-lock-reset"></i></a>
+                                {% if u.pk != user.pk %}
+                                <form method="post" action="{% url 'accounts:user-toggle-active' u.pk %}" style="display:inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-icon {% if u.is_active %}action-icon-red{% else %}action-icon-green{% endif %}" title="{% if u.is_active %}Desactivar{% else %}Activar{% endif %}">
+                                        <i class="mdi {% if u.is_active %}mdi-close-circle-outline{% else %}mdi-check-circle-outline{% endif %}"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}

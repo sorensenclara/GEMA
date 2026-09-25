@@ -22,7 +22,7 @@
             <tr><th>Fecha de carga</th><td>{{ matafuego.fecha_carga|default:"-" }}</td></tr>
             <tr><th>Próxima carga</th><td>{{ matafuego.fecha_proxima_carga|default:"-" }}</td></tr>
             <tr><th>Próximo PH</th><td>{{ matafuego.fecha_proxima_ph|default:"-" }}</td></tr>
-            <tr><th>Vencido</th><td>{% if matafuego.vencido %}<span class="badge bg-danger">Sí</span>{% else %}<span class="badge bg-success">No</span>{% endif %}</td></tr>
+            <tr><th>Vencido</th><td>{% if matafuego.vencido %}<span class="status-badge status-badge-danger"><i class="mdi mdi-alert-circle-outline"></i>Sí</span>{% else %}<span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>No</span>{% endif %}</td></tr>
         </table>
     </div>
 </div>

@@ -1,0 +1,246 @@
+{% extends "core/base.html" %}
+{% block title %}Vencimientos - GEMA{% endblock %}
+
+{% block page_title %}
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <h4 class="mb-0">Vencimientos</h4>
+                <p class="text-muted small mb-0">Gestioná los vencimientos de carga y PH, y las notificaciones por WhatsApp a tus clientes.</p>
+            </div>
+            <div>
+                <a href="{% url 'matafuegos:listado-informe' %}" class="btn btn-outline-secondary waves-effect me-1"><i class="mdi mdi-file-pdf-box me-1"></i> PDF</a>
+                <a href="{% url 'matafuegos:create' %}" class="btn btn-primary waves-effect waves-light"><i class="mdi mdi-plus me-1"></i> Nuevo matafuego</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+
+        {# --- Pestañas con contador (siempre calculado sobre la búsqueda/filtros actuales, no cambia al cambiar de pestaña) --- #}
+        <div class="btn-group gema-filtro-pills mb-3 flex-wrap" role="group">
+            <a href="?{% if qs_sin_filtro %}{{ qs_sin_filtro }}&{% endif %}filtro=todos" class="btn btn-outline-secondary waves-effect {% if filtro_actual == 'todos' %}active{% endif %}">
+                Todos <span class="badge rounded-pill bg-secondary ms-1">{{ counts.todos }}</span>
+            </a>
+            <a href="?{% if qs_sin_filtro %}{{ qs_sin_filtro }}&{% endif %}filtro=proximos" class="btn btn-outline-warning waves-effect {% if filtro_actual == 'proximos' %}active{% endif %}">
+                Próximos a vencer <span class="badge rounded-pill bg-warning text-dark ms-1">{{ counts.proximos }}</span>
+            </a>
+            <a href="?{% if qs_sin_filtro %}{{ qs_sin_filtro }}&{% endif %}filtro=vencidos" class="btn btn-outline-danger waves-effect {% if filtro_actual == 'vencidos' %}active{% endif %}">
+                Vencidos <span class="badge rounded-pill bg-danger ms-1">{{ counts.vencidos }}</span>
+            </a>
+            <a href="?{% if qs_sin_filtro %}{{ qs_sin_filtro }}&{% endif %}filtro=sin_notificar" class="btn btn-outline-secondary waves-effect {% if filtro_actual == 'sin_notificar' %}active{% endif %}">
+                Sin notificar <span class="badge rounded-pill bg-secondary ms-1">{{ counts.sin_notificar }}</span>
+            </a>
+            <a href="?{% if qs_sin_filtro %}{{ qs_sin_filtro }}&{% endif %}filtro=notificados" class="btn btn-outline-success waves-effect {% if filtro_actual == 'notificados' %}active{% endif %}">
+                Notificados <span class="badge rounded-pill bg-success ms-1">{{ counts.notificados }}</span>
+            </a>
+        </div>
+
+        {# --- Buscador + filtros + exportar --- #}
+        <form method="get" class="row g-2 mb-3 align-items-center">
+            <input type="hidden" name="filtro" value="{{ filtro_actual }}">
+            <div class="col-12 col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="mdi mdi-magnify"></i></span>
+                    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar cliente, matafuego o tipo...">
+                </div>
+            </div>
+            <div class="col-auto">
+                <select name="tipo" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todos los tipos</option>
+                    {% for tipo in tipos %}
+                    <option value="{{ tipo.pk }}" {% if tipo_actual == tipo.pk|stringformat:"s" %}selected{% endif %}>{{ tipo.tipo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="estado" class="form-select" onchange="this.form.submit()">
+                    <option value="" {% if estado_actual == '' %}selected{% endif %}>Todos los estados</option>
+                    {% for valor, etiqueta in estados %}
+                    <option value="{{ valor }}" {% if estado_actual == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="cliente" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todos los clientes</option>
+                    {% for c in clientes %}
+                    <option value="{{ c.pk }}" {% if cliente_actual == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-secondary waves-effect"><i class="mdi mdi-magnify me-1"></i>Buscar</button>
+            </div>
+            <div class="col-auto ms-md-auto">
+                <a href="?{% if qs_sin_pagina %}{{ qs_sin_pagina }}&{% endif %}exportar=csv" class="btn btn-outline-secondary waves-effect"><i class="mdi mdi-download me-1"></i>Exportar</a>
+            </div>
+        </form>
+
+        <div class="table-responsive d-none d-md-block">
+            <table class="table table-centered mb-0">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Matafuego</th>
+                        <th>Próximo vencimiento</th>
+                        <th>Estado</th>
+                        <th>Notificación</th>
+                        <th>Cliente (WhatsApp)</th>
+                        <th>Acciones</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fila in filas %}
+                    <tr>
+                        <td>
+                            {{ fila.matafuego.cliente.nombre }}<br>
+                            <span class="text-muted small">{{ fila.matafuego.cliente.codigo }}</span>
+                        </td>
+                        <td>
+                            N° {{ fila.matafuego.numero }}<br>
+                            <span class="text-muted small">{{ fila.matafuego.tipo.tipo }}{% if fila.matafuego.tipo.peso %} {{ fila.matafuego.tipo.peso|floatformat:0 }}{% endif %}</span>
+                        </td>
+                        <td>{{ fila.preview.tipo_vencimiento_display|default:fila.tipo_vencimiento }} · {{ fila.fecha_vencimiento|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if fila.estado_vencimiento == 'vencido' %}
+                                <span class="status-badge status-badge-danger"><i class="mdi mdi-alert-circle-outline"></i>Vencido</span>
+                            {% elif fila.estado_vencimiento == 'proximo' %}
+                                <span class="status-badge status-badge-warning"><i class="mdi mdi-clock-alert-outline"></i>Próximo a vencer</span>
+                            {% else %}
+                                <span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>Al día</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if fila.estado_notificacion == 'pendiente' %}
+                                <span class="status-badge status-badge-info"><i class="mdi mdi-information-outline"></i>Pendiente</span><br><span class="text-muted small">{{ fila.notificacion.created_at|date:"d/m/Y" }}</span>
+                            {% elif fila.estado_notificacion == 'notificada' %}
+                                <span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>Notificado</span><br><span class="text-muted small">{{ fila.notificacion.updated_at|date:"d/m/Y" }}</span>
+                            {% elif fila.estado_notificacion == 'error' %}
+                                <span class="status-badge status-badge-danger"><i class="mdi mdi-alert-circle-outline"></i>Error</span><br><span class="text-muted small">{{ fila.notificacion.updated_at|date:"d/m/Y" }}</span>
+                            {% else %}
+                                <span class="status-badge status-badge-secondary"><i class="mdi mdi-minus-circle-outline"></i>Sin notificar</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if fila.matafuego.cliente.telefono %}
+                                <a href="https://wa.me/{{ fila.matafuego.cliente.telefono }}" target="GEMA_WHATSAPP" class="text-success text-decoration-none" title="Abrir chat de WhatsApp">
+                                    <i class="mdi mdi-whatsapp me-1"></i>+{{ fila.matafuego.cliente.telefono|slice:":3" }} {{ fila.matafuego.cliente.telefono|slice:"3:5" }} {{ fila.matafuego.cliente.telefono|slice:"5:9" }}-{{ fila.matafuego.cliente.telefono|slice:"9:13" }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">Sin WhatsApp</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center flex-nowrap gap-1">
+                                {% include "matafuegos/_panel_vencimientos_accion.html" %}
+                            </div>
+                        </td>
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary waves-effect" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Más acciones">
+                                    <i class="mdi mdi-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{% url 'matafuegos:update' fila.matafuego.pk %}"><i class="mdi mdi-pencil-outline me-1"></i>Editar matafuego</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'cliente:update' fila.matafuego.cliente_id %}"><i class="mdi mdi-account-edit-outline me-1"></i>Editar cliente</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="text-center text-muted">No hay matafuegos para este filtro.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-md-none">
+            {% for fila in filas %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <strong>{{ fila.matafuego.cliente.nombre }}</strong><br>
+                            <span class="text-muted small">{{ fila.matafuego.cliente.codigo }}</span>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary waves-effect" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="mdi mdi-dots-vertical"></i></button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'matafuegos:update' fila.matafuego.pk %}"><i class="mdi mdi-pencil-outline me-1"></i>Editar matafuego</a></li>
+                                <li><a class="dropdown-item" href="{% url 'cliente:update' fila.matafuego.cliente_id %}"><i class="mdi mdi-account-edit-outline me-1"></i>Editar cliente</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="small text-muted mb-1">N° {{ fila.matafuego.numero }} ({{ fila.matafuego.tipo.tipo }}{% if fila.matafuego.tipo.peso %} {{ fila.matafuego.tipo.peso|floatformat:0 }}{% endif %}) · {{ fila.preview.tipo_vencimiento_display|default:fila.tipo_vencimiento }} · {{ fila.fecha_vencimiento|date:"d/m/Y" }}</div>
+                    <div class="mb-2">
+                        {% if fila.estado_vencimiento == 'vencido' %}<span class="status-badge status-badge-danger"><i class="mdi mdi-alert-circle-outline"></i>Vencido</span>
+                        {% elif fila.estado_vencimiento == 'proximo' %}<span class="status-badge status-badge-warning"><i class="mdi mdi-clock-alert-outline"></i>Próximo a vencer</span>
+                        {% else %}<span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>Al día</span>{% endif %}
+                        {% if fila.estado_notificacion == 'pendiente' %}<span class="status-badge status-badge-info"><i class="mdi mdi-information-outline"></i>Pendiente</span>
+                        {% elif fila.estado_notificacion == 'notificada' %}<span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>Notificado</span>
+                        {% elif fila.estado_notificacion == 'error' %}<span class="status-badge status-badge-danger"><i class="mdi mdi-alert-circle-outline"></i>Error</span>
+                        {% else %}<span class="status-badge status-badge-secondary"><i class="mdi mdi-minus-circle-outline"></i>Sin notificar</span>{% endif %}
+                    </div>
+                    {% if fila.matafuego.cliente.telefono %}
+                    <div class="small mb-2">
+                        <a href="https://wa.me/{{ fila.matafuego.cliente.telefono }}" target="GEMA_WHATSAPP" class="text-success text-decoration-none">
+                            <i class="mdi mdi-whatsapp me-1"></i>+{{ fila.matafuego.cliente.telefono|slice:":3" }} {{ fila.matafuego.cliente.telefono|slice:"3:5" }} {{ fila.matafuego.cliente.telefono|slice:"5:9" }}-{{ fila.matafuego.cliente.telefono|slice:"9:13" }}
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% include "matafuegos/_panel_vencimientos_accion.html" %}
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center text-muted">No hay matafuegos para este filtro.</p>
+            {% endfor %}
+        </div>
+
+        {# --- Paginación --- #}
+        {% if pagina.paginator.num_pages > 1 %}
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+            <span class="text-muted small">Mostrando {{ pagina.start_index }} a {{ pagina.end_index }} de {{ pagina.paginator.count }}</span>
+            <ul class="pagination mb-0">
+                {% if pagina.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if qs_sin_pagina %}{{ qs_sin_pagina }}&{% endif %}page={{ pagina.previous_page_number }}">Anterior</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                {% endif %}
+                {% for num in pagina.paginator.page_range %}
+                <li class="page-item {% if num == pagina.number %}active{% endif %}">
+                    <a class="page-link" href="?{% if qs_sin_pagina %}{{ qs_sin_pagina }}&{% endif %}page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if pagina.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if qs_sin_pagina %}{{ qs_sin_pagina }}&{% endif %}page={{ pagina.next_page_number }}">Siguiente</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="alert alert-light border mt-3 mb-0 small">
+            <i class="mdi mdi-information-outline me-1"></i>
+            El botón <strong>Notificar</strong> se habilita para matafuegos vencidos o próximos a vencer (dentro de los próximos 30 días). El envío por WhatsApp siempre lo confirmás vos manualmente: GEMA abre el mensaje listo, pero nunca lo envía solo.
+        </div>
+    </div>
+</div>
+
+{% if abrir_whatsapp %}
+<script>
+    window.open("{{ abrir_whatsapp|escapejs }}", "GEMA_WHATSAPP");
+</script>
+{% endif %}
+{% endblock %}

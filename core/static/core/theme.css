@@ -48,7 +48,28 @@ h2 { font-size: 1.75rem !important; }     /* antes 1.625rem (26px) */
 h3 { font-size: 1.546875rem !important; } /* antes 1.421875rem (~22.75px) */
 h4 { font-size: 1.34375rem !important; }  /* antes 1.21875rem (19.5px) */
 h5 { font-size: 1.140625rem !important; } /* antes 1.015625rem (~16.25px) */
-h6 { font-size: 0.9375rem !important; }   /* antes 0.8125rem (13px) */
+h6 { font-size: 0.9375rem !important; } /* antes 0.8125rem (13px) */
+
+/* El vendor pisa el h4 dentro de .page-title-box con su propio selector más
+específico (.page-title-box h4{font-size:18px!important}), así que el h4
+{font-size:1.34375rem} de arriba no le llega -- pedido explícito de Clara
+para que ese título quede en 26px. */
+.page-title-box h4 {
+    font-size: 26px !important;
+}
+
+/* Titulares con más peso (700) en vez del 600 que trae el theme por
+defecto -- pedido explícito de Clara. */
+h1, h2, h3, h4 {
+    font-weight: 700 !important;
+}
+
+/* Botones: siempre con las esquinas bien redondeadas (32px), pedido
+explícito de Clara -- se pisa cualquier .btn-* del vendor (incluidos los
+agrupados en .btn-group, como los filtros de Vencimientos). */
+.btn {
+    border-radius: 32px !important;
+}
 
 /* --- Íconos más grandes: menú horizontal y acciones de tabla --- */
 
@@ -134,6 +155,17 @@ grillas (clientes, matafuegos, usuarios) sin repetirlo por template. */
     superadmin (empresas/panel_base.html), para mantener un solo "rojo GEMA". */
     --bs-danger: #c62828;
     --bs-danger-rgb: 198, 40, 40;
+    /* El --bs-success del vendor (#58db83) es un verde pastel muy poco
+    legible como texto/borde (.btn-outline-success, .badge.bg-success) --
+    pedido explícito de Clara ("Notificados"). Actualizado a pedido de Clara
+    (2026-09-24) a este verde mas saturado. NOTA: este bloque estaba cortado
+    en dos :root separados por una llave de mas -- las declaraciones de
+    --bs-success quedaban fuera de cualquier regla (CSS invalido, el
+    navegador las descarta), asi que en la practica el verde pastel del
+    vendor seguia aplicandose pese a este codigo. Se unifica en un solo
+    bloque :root para que la variable se aplique de verdad. */
+    --bs-success: #17a672;
+    --bs-success-rgb: 23, 166, 114;
 }
 
 .btn-primary,
@@ -156,6 +188,25 @@ grillas (clientes, matafuegos, usuarios) sin repetirlo por template. */
     color: #fff !important;
 }
 
+/* La paginación (.pagination/.page-link) del vendor NO usa --bs-primary
+para su estado activo -- trae su propia variable hardcodeada
+(--bs-pagination-active-bg: #7a6fbe, un violeta fijo, sin relación con el
+naranja de marca) que el override de --bs-primary de arriba nunca toca. Se
+pisa el color concreto para que la página activa en cualquier paginación
+(Matafuegos, Vencimientos, etc.) quede en naranja GEMA como el resto de los
+elementos "activo/seleccionado" de la app. */
+.page-item.active .page-link,
+.page-item.active .page-link:hover,
+.page-item.active .page-link:focus {
+    background-color: #EC6C05 !important;
+    border-color: #EC6C05 !important;
+    color: #fff !important;
+}
+
+.page-link:focus {
+    box-shadow: 0 0 0 0.15rem rgba(236, 108, 5, 0.25) !important;
+}
+
 /* --- Layout horizontal: topbar blanco (logo + perfil) --- */
 #page-topbar,
 .navbar-header {
@@ -163,8 +214,36 @@ grillas (clientes, matafuegos, usuarios) sin repetirlo por template. */
     box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
 }
 
+/* .navbar-header (70px de alto) es flex con align-items:center, pero ese
+centrado no le llega al logo -- adentro hay un <div class="container-fluid">
+(bloque, no flex) y el logo flota con .float-start, así que quedaba alineado
+arriba en vez de centrado con el resto del topbar. Se centra acá mismo (en
+vez de un margin-top a ojo, que se rompe si el logo cambia de alto de nuevo). */
+.navbar-brand-box {
+    display: flex !important;
+    align-items: center;
+    height: 70px;
+}
+
+.navbar-brand-box .logo {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
 .navbar-brand-box .logo img {
     display: block;
+}
+
+/* Mismo problema que el logo, del otro lado: .float-end también flota
+adentro de .container-fluid (bloque, no flex), así que no hereda el
+align-items:center de .navbar-header -- se notaba poco mientras la pill de
+usuario medía 70px (el vendor), pero al bajarla a su alto real (ver
+.gema-user-pill) quedó pegada arriba en vez de centrada. */
+.navbar-header .float-end {
+    display: flex;
+    align-items: center;
+    height: 70px;
 }
 
 /* Botón de cuenta (usuario/rol) dentro del topbar blanco -- texto/ícono
@@ -223,6 +302,15 @@ criterio que el resto de este archivo. */
     box-shadow: 0 -3px 31px 0 rgba(0, 0, 0, .05), 0 6px 20px 0 rgba(0, 0, 0, .02) !important;
 }
 
+/* Padding superior de .page-content en el layout horizontal: el vendor trae
+calc(180px + 1.5rem) (pensado para un topbar más alto que el que quedó acá,
+con la franja azul + el menú flotante de arriba) -- pedido explícito de
+Clara para acercar el contenido. Se pisa solo padding-top: los otros 3 lados
+del padding (shorthand original del vendor) quedan igual. */
+body[data-layout=horizontal] .page-content {
+    padding-top: calc(121px + 1.5rem) !important;
+}
+
 /* El box-shadow/border-radius del vendor da un acabado prolijo, pero por sí
 solos no generan superposición real -- acá sí queremos que el menú blanco
 tape visiblemente el borde inferior de la franja azul, no solo quede pegado
@@ -245,16 +333,26 @@ sin necesitar z-index para esto). */
     color: #EC6C05 !important;
 }
 
+/* Sección activa/hover del menú principal: línea naranja debajo del ítem
+(Clara probó primero un fondo con esquinas redondeadas y prefirió esto).
+El ícono ya cambia de color en la sección activa vía el <img> (ver
+*-active.svg en core/images/iconos/ y core/templates/core/base.html); acá
+solo va la línea. border-bottom transparente por defecto en TODOS los
+nav-link (no solo en :hover/.active) para reservar el espacio -- si no, el
+texto/ícono saltarían 3px hacia abajo al aparecer la línea. */
+.topnav .navbar-nav .nav-link {
+    border-bottom: 3px solid transparent;
+}
+
+.topnav .navbar-nav .nav-link:hover,
+.topnav .navbar-nav .nav-link:focus,
+.topnav .navbar-nav .nav-link.active {
+    border-bottom-color: #EC6C05;
+}
+
 /* --- Bordes redondeados 8px: grillas (cards) --- */
 .card {
     border-radius: 8px;
-}
-
-/* Botón "Salir" del header, al lado del nombre de usuario. */
-.header-item.text-danger,
-.header-item.text-danger:hover,
-.header-item.text-danger:focus {
-    color: #c62828 !important;
 }
 
 /* ============================================================
@@ -580,6 +678,25 @@ tenga una consulta real atrás) en vez del bloque completo. */
     flex-shrink: 0;
 }
 
+/* Fila clickeable de "Requieren atención" -- envuelve ícono+contador+texto
+en un <a> para que toda esa zona sea un solo link (el chevron de la derecha
+queda afuera, como hermano, en el <li>); reutiliza el mismo layout flex que
+ya tenía el <li> a pelo. Filas sin destino todavía (ver dashboard.html,
+"Tareas demoradas") no llevan esta clase y quedan sin link, igual que antes. */
+.attention-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
+}
+
+.attention-link:hover {
+    color: inherit;
+}
+
 /* Pills de la columna "Tipo" en la tabla de actividad reciente. */
 .badge-activity {
     display: inline-flex;
@@ -597,3 +714,282 @@ tenga una consulta real atrás) en vez del bloque completo. */
 .badge-activity-warning { background: #fdeee0; color: #b0530a; }
 .badge-activity-purple { background: #f1e7fb; color: #6a3fb5; }
 .badge-activity-peach { background: #fdf1e2; color: #b0791a; }
+/* Fila de "eliminado" en Actividad reciente -- mismo rojo que .errorlist.nonfield. */
+.badge-activity-danger { background: #fdecea; color: #c62828; }
+
+/* Columna "Acciones" de Matafuegos/Vencimientos: la zona de notificación
+(Notificar/Confirmar/Volver a notificar/Sin WhatsApp) ocupa siempre el mismo
+ancho, sea cual sea el estado de la fila, para que lo que viene después
+(OT/Editar/Eliminar en la grilla de Matafuegos, o el menú "..." en el panel
+de Vencimientos) arranque siempre en la misma posición en todas las filas. */
+.gema-accion-notificacion {
+    width: 170px;
+    flex: 0 0 170px;
+}
+
+/* Pills de filtro (Todos/Próximos a vencer/Vencidos/... de Matafuegos y
+Vencimientos): son <div class="btn-group">, y Bootstrap le pone a cada botón
+que no es el primero un margin-left negativo (para que, en un grupo
+"tradicional", los bordes se peguen y parezca un solo control) -- acá cada
+botón ya es una píldora redondeada independiente (.btn a 32px, ver arriba),
+así que ese margen negativo los dejaba pegados en vez de separados. Se anula
+ese margen y se separan con gap. */
+.gema-filtro-pills {
+    gap: 8px;
+}
+
+.gema-filtro-pills > .btn {
+    margin-left: 0 !important;
+}
+
+/* --- Pill de usuario del topbar (avatar con iniciales + nombre + rol) y
+botón de logout solo-ícono -- reemplazan el ícono genérico mdi-account-circle
+y el botón "Salir" con texto, pedido explícito de Clara sobre un mockup que
+mandó. Las iniciales las calcula el modelo (User.initials, ver
+accounts/models/user.py). */
+/* .header-item (vendor) trae height:70px fijo -- por eso la pill se veía
+enorme, sin relación con su contenido real. Se pisa con height:auto para
+que el alto lo determine el padding + el contenido (avatar + 2 líneas). */
+.gema-user-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: auto !important;
+    padding: 4px 12px 4px 4px !important;
+    border: 1px solid #e2e5e9;
+    background: #fff;
+}
+
+.gema-user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #1B4B8D;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.gema-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
+    line-height: 1.15;
+}
+
+.gema-user-name {
+    font-weight: 600;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.gema-user-role {
+    font-size: 11px;
+    padding: 2px 8px;
+}
+
+/* Botón de logout: solo el ícono, sin caja/borde alrededor -- gris en
+reposo, naranja al pasar el mouse (pedido explícito de Clara). */
+.gema-logout-btn {
+    border: 0 !important;
+    height: auto !important;
+    width: 40px;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #8a92a3 !important;
+    background: transparent !important;
+}
+
+.gema-logout-btn:hover,
+.gema-logout-btn:focus {
+    color: #EC6C05 !important;
+    border: 0 !important;
+}
+
+/* --- Pantalla de login/reset de contraseña (accounts/base_auth.html):
+fondo degradado con los dos colores de marca (azul GEMA -> naranja GEMA),
+pedido explícito de Clara. Se aplica vía .auth-page en el <body> de
+base_auth.html, así que no afecta al resto de la app (dashboard, listados,
+etc. no llevan esta clase). */
+body.auth-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1B4B8D 0%, #EC6C05 100%);
+}
+
+/* --- Inputs del login con ícono a la derecha y texto de ayuda como
+placeholder en vez de <label> arriba (mismo patrón visual que Clara pidió
+tomar de GEAGRO): el ícono va DENTRO del input (position:absolute sobre un
+wrapper relative), no en un input-group aparte, para que no se vea como dos
+cajas pegadas. */
+.auth-input-wrap {
+    position: relative;
+}
+
+.auth-input-wrap .form-control {
+    padding-right: 44px;
+}
+
+.auth-input-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8a92a3;
+    pointer-events: none; /* ícono decorativo (usuario) por defecto */
+}
+
+/* El ojito de mostrar/ocultar contraseña sí es clickeable -- se pisa el
+pointer-events de arriba (viene en un <button>, no en un <span>) y se le
+suma cursor/hover para que se note que responde al click. */
+.auth-input-icon.auth-toggle-password {
+    pointer-events: auto;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+}
+
+.auth-toggle-password:hover {
+    color: #495057;
+}
+
+/* --- Badges de estado (.status-badge) ---
+   Reemplazan a badge bg-success/bg-danger/bg-warning/bg-secondary/bg-info
+   SOLO cuando el badge representa el ESTADO de una fila/entidad (Al día,
+   Vencido, Próximo a vencer, Activo/Inactivo, Notificado, Pendiente...).
+   Pedido de Clara (2026-09-24): estilo soft/pastel para que no se
+   confundan visualmente con botones clickeables. Los contadores dentro de
+   los botones de filtro (.gema-filtro-pills) y las etiquetas de tipo/
+   categoría (ej. "Vehicular", "Domiciliario") NO usan esta clase a
+   propósito -- no son un estado.
+   Los colores de fondo/texto son propios de esta clase: no se tocan
+   --bs-success/--bs-danger/--bs-warning/etc, así que botones, alerts y
+   cualquier otro componente que use esas variables quedan intactos.
+   Fondo = tinte muy claro del color semántico; texto/ícono = versión
+   oscura del mismo color, con contraste WCAG AA/AAA verificado:
+     success  #e6f7f0 / #1c6b34 -- 5.9:1  (texto reutiliza el verde de
+                                            .badge-activity-success)
+     danger   #fbeaea / #c62828 -- 4.8:1  (texto reutiliza --bs-danger)
+     warning  #fdf3d9 / #6b4a00 -- 7.3:1
+     secondary #eceded / #495057 -- 7.0:1
+     info     #daf5fb / #075363 -- 7.6:1
+     purple   #f1e7fb / #6a3fb5 -- 5.87:1 (reutiliza el par ya definido
+                                            en .badge-activity-purple,
+                                            agregado 2026-09-24 para los
+                                            estados de Orden de trabajo)
+*/
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 4px 10px;
+    font-size: 12px;
+    line-height: 1.3;
+    border: 0;
+    box-shadow: none;
+}
+
+.status-badge i {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.status-badge-success { background: #e6f7f0; color: #1c6b34; }
+.status-badge-danger { background: #fbeaea; color: #c62828; }
+.status-badge-warning { background: #fdf3d9; color: #6b4a00; }
+.status-badge-secondary { background: #eceded; color: #495057; }
+.status-badge-info { background: #daf5fb; color: #075363; }
+.status-badge-purple { background: #f1e7fb; color: #6a3fb5; }
+
+/* --- Acciones de fila (.action-icon) ---
+   Sistema global de acciones rápidas para tablas/listados/cards (Editar,
+   PDF/Informe, transiciones de estado, Eliminar, etc.). Pedido de Clara
+   (2026-09-24): un único componente circular reutilizable en todo GEMA,
+   en vez del texto suelto "text-primary"/"text-danger" + ícono que había
+   en cada tabla con estilos distintos.
+   Esto es SOLO para acciones rápidas visibles en tablas/listados/cards.
+   No se usa para ítems dentro de un menú desplegable (ahí seguimos con
+   ícono lineal + texto, ver el dropdown "Más acciones" del panel de
+   Vencimientos) ni para acciones principales de pantalla (esas siguen
+   siendo botones con texto, ej. "Nueva orden", "Guardar").
+   Las clases son por COLOR, no por acción puntual: una misma familia de
+   color puede usarse para más de una acción específica cuando comparten
+   el mismo significado (ej. Editar y "Pasar a en proceso" son ambos
+   azules, pero son acciones distintas con su propio ícono y tooltip).
+   Colores con contraste WCAG AA verificado (icono sobre fondo soft, y
+   fondo sólido contra blanco en hover/focus):
+     blue   #e7f1fd / #1d5fa8 -- 5.65:1  (hover sólido vs blanco: 6.45:1)
+     orange #fdeee0 / #b0530a -- 4.52:1  (hover sólido vs blanco: 5.14:1)
+     green  #e6f7f0 / #1c6b34 -- 5.91:1  (hover sólido vs blanco: 6.56:1)
+     red    #fbeaea / #c62828 -- 4.83:1  (hover sólido vs blanco: 5.62:1)
+   (El naranja de marca --bs-primary #EC6C05 no se usa acá porque su
+   contraste contra blanco es de solo 3.13:1, insuficiente.)
+*/
+.action-icons {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    box-shadow: none;
+    background: transparent;
+    text-decoration: none;
+    cursor: pointer;
+    font: inherit;
+    line-height: 1;
+    transition: background-color .2s ease, color .2s ease, transform .15s ease;
+}
+
+.action-icon i {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.action-icon:hover,
+.action-icon:focus-visible {
+    text-decoration: none;
+    transform: scale(1.06);
+}
+
+.action-icon:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.action-icon-blue { background: #e7f1fd; color: #1d5fa8; }
+.action-icon-blue:hover, .action-icon-blue:focus-visible { background: #1d5fa8; color: #fff; }
+
+.action-icon-orange { background: #fdeee0; color: #b0530a; }
+.action-icon-orange:hover, .action-icon-orange:focus-visible { background: #b0530a; color: #fff; }
+
+.action-icon-green { background: #e6f7f0; color: #1c6b34; }
+.action-icon-green:hover, .action-icon-green:focus-visible { background: #1c6b34; color: #fff; }
+
+.action-icon-red { background: #fbeaea; color: #c62828; }
+.action-icon-red:hover, .action-icon-red:focus-visible { background: #c62828; color: #fff; }

@@ -12,9 +12,21 @@
 <div class="row">
     <div class="col-12">
         <div class="page-title-box d-flex align-items-center justify-content-between">
-            <h4 class="mb-0">Clientes</h4>
             <div>
-                <a href="{% url 'cliente:listado-informe' %}" class="btn btn-outline-secondary waves-effect me-1"><i class="mdi mdi-file-pdf-box me-1"></i> PDF</a>
+                <h4 class="mb-0">Clientes</h4>
+                <p class="text-muted small mb-0">Gestioná tus clientes y sus matafuegos.</p>
+            </div>
+            <div>
+                <div class="dropdown d-inline-block me-1">
+                    <button type="button" class="btn btn-outline-secondary waves-effect dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="mdi mdi-download me-1"></i> Exportar
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'cliente:listado-informe' %}"><i class="mdi mdi-file-pdf-outline me-1"></i>PDF</a></li>
+                        <li><button type="button" class="dropdown-item" id="btn-exportar-copiar"><i class="mdi mdi-content-copy me-1"></i>Copiar</button></li>
+                        <li><button type="button" class="dropdown-item" id="btn-exportar-excel"><i class="mdi mdi-file-excel-outline me-1"></i>Excel</button></li>
+                    </ul>
+                </div>
                 <a href="{% url 'cliente:create' %}" class="btn btn-primary waves-effect waves-light"><i class="mdi mdi-plus me-1"></i> Nuevo cliente</a>
             </div>
         </div>
@@ -28,36 +40,53 @@
         <div class="table-responsive">
             <table id="datatable-clientes" class="table table-centered table-nowrap mb-0">
                 <thead>
-                    <tr><th>Código</th><th>Nombre</th><th>CUIT/CUIL</th><th>Estado</th><th>Acciones</th></tr>
+                    <tr><th>Código</th><th>Cliente</th><th>CUIT/CUIL</th><th>Contacto</th><th>Estado</th><th>Acciones</th></tr>
                 </thead>
                 <tbody>
                     {% for c in clientes %}
                     <tr>
                         <td>{{ c.codigo }}</td>
-                        <td>{{ c.nombre }}</td>
+                        <td>
+                            {{ c.nombre }}<br>
+                            <span class="text-muted small">{{ c.matafuegos_count }} matafuego{{ c.matafuegos_count|pluralize }}</span>
+                        </td>
                         <td>{{ c.cuit_cuil|default:"-" }}</td>
                         <td>
-                            {% if c.estado == 'a' %}
-                                <span class="badge bg-success">Activo</span>
+                            {% if c.telefono %}
+                                <div><i class="mdi mdi-whatsapp text-success me-1"></i>{{ c.telefono }}</div>
                             {% else %}
-                                <span class="badge bg-secondary">Inactivo</span>
+                                <div class="text-muted"><i class="mdi mdi-whatsapp me-1"></i>Sin whatsapp</div>
+                            {% endif %}
+                            {% if c.email %}
+                                <div><i class="mdi mdi-email-outline me-1" style="color:#1d5fa8"></i>{{ c.email }}</div>
+                            {% else %}
+                                <div class="text-muted"><i class="mdi mdi-email-outline me-1"></i>Sin email</div>
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{% url 'cliente:update' c.pk %}" class="text-primary" title="Editar"><i class="mdi mdi-pencil font-size-18"></i></a>
-                            <a href="{% url 'cliente:informe' c.pk %}" class="text-primary" title="Informe"><i class="mdi mdi-file-pdf-box font-size-18"></i></a>
-                            {% if c.email %}
-                            <form method="post" action="{% url 'cliente:enviar-informe' c.pk %}" style="display:inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-link p-0 text-primary" title="Enviar por email"><i class="mdi mdi-email-send-outline font-size-18"></i></button>
-                            </form>
+                            {% if c.estado == 'a' %}
+                                <span class="status-badge status-badge-success"><i class="mdi mdi-check-circle-outline"></i>Activo</span>
+                            {% else %}
+                                <span class="status-badge status-badge-secondary"><i class="mdi mdi-minus-circle-outline"></i>Inactivo</span>
                             {% endif %}
-                            <form method="post" action="{% url 'cliente:toggle-active' c.pk %}" style="display:inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-link p-0 {% if c.estado == 'a' %}text-danger{% else %}text-success{% endif %}" title="{% if c.estado == 'a' %}Desactivar{% else %}Activar{% endif %}">
-                                    <i class="mdi {% if c.estado == 'a' %}mdi-delete{% else %}mdi-check-circle{% endif %} font-size-18"></i>
-                                </button>
-                            </form>
+                        </td>
+                        <td>
+                            <div class="action-icons">
+                                <a href="{% url 'cliente:update' c.pk %}" class="action-icon action-icon-blue" title="Editar"><i class="mdi mdi-pencil-outline"></i></a>
+                                <a href="{% url 'cliente:informe' c.pk %}" class="action-icon action-icon-orange" title="Informe"><i class="mdi mdi-file-pdf-outline"></i></a>
+                                {% if c.email %}
+                                <form method="post" action="{% url 'cliente:enviar-informe' c.pk %}" style="display:inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-icon action-icon-blue" title="Enviar por email"><i class="mdi mdi-email-send-outline"></i></button>
+                                </form>
+                                {% endif %}
+                                <form method="post" action="{% url 'cliente:toggle-active' c.pk %}" style="display:inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-icon {% if c.estado == 'a' %}action-icon-red{% else %}action-icon-green{% endif %}" title="{% if c.estado == 'a' %}Desactivar{% else %}Activar{% endif %}">
+                                        <i class="mdi {% if c.estado == 'a' %}mdi-delete-outline{% else %}mdi-check-circle-outline{% endif %}"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -81,12 +110,17 @@
 <script src="{% static 'lexa/libs/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js' %}"></script>
 <script>
 $(function () {
-    $('#datatable-clientes').DataTable({
-        dom: 'Bfrtip',
+    var tablaClientes = $('#datatable-clientes').DataTable({
+        dom: 'frtip',
         buttons: ['copy', 'excel'],
         responsive: true,
         language: { url: '' , search: 'Buscar:', lengthMenu: 'Mostrar _MENU_ filas', info: 'Mostrando _START_ a _END_ de _TOTAL_', paginate: { previous: 'Anterior', next: 'Siguiente' }, zeroRecords: 'No hay clientes cargados todavía.' },
     });
+    // Los botones "copy"/"excel" de DataTables ya no se renderizan sueltos (se
+    // saco la 'B' del dom): se disparan desde las opciones del dropdown
+    // "Exportar" del encabezado, junto con el PDF.
+    $('#btn-exportar-copiar').on('click', function () { tablaClientes.button('.buttons-copy').trigger(); });
+    $('#btn-exportar-excel').on('click', function () { tablaClientes.button('.buttons-excel').trigger(); });
 });
 </script>
 {% endblock %}
